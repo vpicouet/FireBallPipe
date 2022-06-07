@@ -1,0 +1,703 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib notebook\n",
+    "\n",
+    "from __future__ import division, print_function\n",
+    "\n",
+    "import numpy as np\n",
+    "from astropy.io import fits\n",
+    "from astropy import wcs, coordinates\n",
+    "from astropy import units as u\n",
+    "from astropy.wcs.utils import proj_plane_pixel_scales\n",
+    "from matplotlib import pyplot as plt\n",
+    "from astropy.table import Table\n",
+    "import matplotlib.patches as patches\n",
+    "\n",
+    "from guider2UV import Guider2UV\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "path_SC_GUI02 = '/home/dvibert/ownCloud/FIREBALL/Tests-at-FortSumner/SC_GUI02/'\n",
+    "\n",
+    "mask_plate_scale = 42.26134 #mm/deg\n",
+    "\n",
+    "#guider center => put source on guider center\n",
+    "gc = np.array([640, 540])\n",
+    "\n",
+    "# encoder gains:\n",
+    "CEg = 1.027\n",
+    "Elg = 1.001\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Field 3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "FOV angular position in guider <SkyCoord (SkyOffsetICRS: rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg\n",
+      "    ( 250.42402654,  36.43499699)>): (lon, lat) in deg\n",
+      "    ( 0.18212015, -0.00658703)>\n",
+      "FOV pixel position in guider [array(1356.4845946520452), array(515.5439768745807)]\n"
+     ]
+    }
+   ],
+   "source": [
+    "G2UV_F3= Guider2UV(filename=path_SC_GUI02 + 'Guider2UV_F3_nogamma.pkl')\n",
+    "gc_coord = G2UV_F3.GuiderP.pix2local([gc])\n",
+    "\n",
+    "target_filename = '/home/dvibert/ownCloud/FIREBALL/Target_selection_meeting_NY_20170405/targets_F3.txt'\n",
+    "F3 = Table.read(target_filename, format='ascii')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## go to open mask"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "slit coord in guider local frame: [u'0d16m36.4526s -0d00m19.3246s']\n",
+      "EL: [ 497.72859635] arcsec \n",
+      "CE: [ 9.40826378] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "test_pos = [0, 4] #mm\n",
+    "test_coord = G2UV_F3.SienceMask2guider(test_pos, angle=True)\n",
+    "print(\"slit coord in guider local frame:\", test_coord.to_string(u'dms'))\n",
+    "\n",
+    "#frame move\n",
+    "theta_EL =  test_coord.lon.deg/2./Elg\n",
+    "theta_CE = -test_coord.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## slit #29"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "slit position in mm on mask: [ 2.717293 -6.033871]\n",
+      "slit coord in guider local frame: [u'0d02m24.2846s -0d04m21.9599s']\n",
+      "EL: [ 72.07022015] arcsec \n",
+      "CE: [ 127.53647365] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "slit_pos1 =   np.array([F3[F3['Internal-count']=='29']['xmm'][0], F3[F3['Internal-count']=='29']['ymm'][0]])\n",
+    "print(\"slit position in mm on mask:\", slit_pos1)\n",
+    "slit_coord1 = G2UV_F3.SienceMask2guider(slit_pos1, angle=True)\n",
+    "print(\"slit coord in guider local frame:\", slit_coord1.to_string(u'dms'))\n",
+    "\n",
+    "#frame move\n",
+    "theta_EL =  slit_coord1.lon.deg/2./Elg\n",
+    "theta_CE = -slit_coord1.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "dithering vertical & horizontal, note frame delta:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 104,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[u'0d02m24.2846s -0d04m25.8548s']\n"
+     ]
+    }
+   ],
+   "source": [
+    "delta_EL = 0./3600/2/Elg \n",
+    "delta_CE = +4./3600/2/CEg \n",
+    "\n",
+    "slit_obs1  = coordinates.SkyCoord(slit_coord1.lon + 2*delta_EL*u.deg,\n",
+    "                                     slit_coord1.lat - 2*delta_CE*u.deg,\n",
+    "                                        frame=G2UV_F3.GuiderP.localframe)\n",
+    "print(slit_obs1.to_string(u'dms')) \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## slit #18"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 97,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "slit position in mm on mask: [-2.755908 -2.932295]\n",
+      "slit coord in guider local frame: [u'0d06m42.7618s 0d03m27.8873s']\n",
+      "EL: [ 201.17970941] arcsec \n",
+      "CE: [-101.21096575] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "slit_pos2 =   np.array([F3[F3['Internal-count']=='18']['xmm'][0], F3[F3['Internal-count']=='18']['ymm'][0]])\n",
+    "print(\"slit position in mm on mask:\", slit_pos2)\n",
+    "slit_coord2 = G2UV_F3.SienceMask2guider(slit_pos2, angle=True)\n",
+    "print(\"slit coord in guider local frame:\", slit_coord2.to_string(u'dms'))\n",
+    "\n",
+    "#frame move\n",
+    "theta_EL =  slit_coord2.lon.deg/2./Elg\n",
+    "theta_CE = -slit_coord2.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 105,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[u'0d06m41.7628s 0d03m25.9399s']\n"
+     ]
+    }
+   ],
+   "source": [
+    "delta_EL = -1./3600/2/Elg \n",
+    "delta_CE =  2./3600/2/CEg \n",
+    "\n",
+    "slit_obs2  = coordinates.SkyCoord(slit_coord2.lon + 2*delta_EL*u.deg,\n",
+    "                                        slit_coord2.lat - 2*delta_CE*u.deg,\n",
+    "                                        frame=G2UV_F3.GuiderP.localframe)\n",
+    "print(slit_obs2.to_string(u'dms')) \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## slit #32"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 108,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "slit position in mm on mask: [ 4.391899 -1.817091]\n",
+      "slit coord in guider local frame: [u'0d08m25.6111s -0d06m39.9561s']\n",
+      "EL: [ 252.55299783] arcsec \n",
+      "CE: [ 194.72060952] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "slit_pos3 =   np.array([F3[F3['Internal-count']=='32']['xmm'][0], F3[F3['Internal-count']=='32']['ymm'][0]])\n",
+    "print(\"slit position in mm on mask:\", slit_pos3)\n",
+    "slit_coord3 = G2UV_F3.SienceMask2guider(slit_pos3, angle=True)\n",
+    "print(\"slit coord in guider local frame:\", slit_coord3.to_string(u'dms'))\n",
+    "\n",
+    "#frame move\n",
+    "theta_EL =  slit_coord3.lon.deg/2./Elg\n",
+    "theta_CE = -slit_coord3.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 110,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[u'0d08m24.6121s -0d06m39.9561s']\n"
+     ]
+    }
+   ],
+   "source": [
+    "delta_EL = -1./3600/2/Elg \n",
+    "delta_CE = 0./3600/2/CEg \n",
+    "\n",
+    "slit_obs3  = coordinates.SkyCoord(slit_coord3.lon + 2*delta_EL*u.deg,\n",
+    "                                        slit_coord3.lat - 2*delta_CE*u.deg,\n",
+    "                                        frame=G2UV_F3.GuiderP.localframe)\n",
+    "print(slit_obs3.to_string(u'dms')) \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## compute orientation, offset & magnification"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "convert to Field local frame"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 111,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[-0.05015376 -3.89483934]\n",
+      " [-1.02407788 -1.93455555]\n",
+      " [-0.999001    0.01286411]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "slit_coord1_F = G2UV_F3.guider_to_FieldLocal(slit_coord1, angle=True)\n",
+    "slit_coord2_F = G2UV_F3.guider_to_FieldLocal(slit_coord2, angle=True)\n",
+    "slit_coord3_F = G2UV_F3.guider_to_FieldLocal(slit_coord3, angle=True)\n",
+    "slit_obs1_F = G2UV_F3.guider_to_FieldLocal(slit_obs1, angle=True)\n",
+    "slit_obs2_F = G2UV_F3.guider_to_FieldLocal(slit_obs2, angle=True)\n",
+    "slit_obs3_F = G2UV_F3.guider_to_FieldLocal(slit_obs3, angle=True)\n",
+    "\n",
+    "slit_coord = np.array([[slit_coord1_F.lon.deg, slit_coord1_F.lat.deg],\n",
+    "                    [slit_coord2_F.lon.deg, slit_coord2_F.lat.deg],\n",
+    "                    [slit_coord3_F.lon.deg, slit_coord3_F.lat.deg]])\n",
+    "slit_obs = np.array([[slit_obs1_F.lon.deg, slit_obs1_F.lat.deg],\n",
+    "                      [slit_obs2_F.lon.deg, slit_obs2_F.lat.deg],\n",
+    "                      [slit_obs3_F.lon.deg, slit_obs3_F.lat.deg]])\n",
+    "slit_coord = slit_coord.reshape((3,2))\n",
+    "slit_obs = slit_obs.reshape((3,2))                       \n",
+    "delta = slit_obs - slit_coord\n",
+    "print(delta*3600)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 117,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "gamma: 0.997169508946\n",
+      "theta: 1.65934884029 arcmin\n",
+      "dx: -1.61802298925 arcsec\n",
+      "dy: -4.30225571745 arcsec\n",
+      "variances: [  3.79825453e-03   7.63565888e+00   1.31817385e+00   1.77766350e+00]\n",
+      "\n",
+      "residual in arcsec: [ 0.00025675 -0.0003499   0.00049341]\n"
+     ]
+    }
+   ],
+   "source": [
+    "row1   = np.hstack((slit_coord[0,::-1], np.array([0., 1.]))) # yn -y = theta x  + y dgama + dy\n",
+    "row2_4 = np.hstack((slit_coord*[1.,-1], np.ones((3,1)), np.zeros((3,1)))) # xn -x = x dgama - theta y + dx \n",
+    "mat = np.vstack((row1, row2_4))\n",
+    "matinv =  np.linalg.inv(mat)\n",
+    "data = np.concatenate((slit_obs[[0],1] - slit_coord[[0],1], slit_obs[:,0] - slit_coord[:,0]))\n",
+    "sol = matinv.dot(data)\n",
+    "gama = 1 + sol[0]\n",
+    "theta_rad = sol[1]\n",
+    "deltax = sol[2]\n",
+    "deltay = sol[3]\n",
+    "theta = theta_rad*180/np.pi*60 #arcmin\n",
+    "print(\"gamma: {}\\ntheta: {} arcmin\\ndx: {} arcsec\\ndy: {} arcsec\".format(gama, theta, deltax*3600, deltay*3600))\n",
+    "covar = matinv.dot(matinv.T)\n",
+    "# accuracy, assuming 1 arcsec measurement error\n",
+    "print(\"variances: {}\\n\".format(np.sqrt(np.diag(covar))/3600*[1, 180/np.pi*60, 3600, 3600])) #\n",
+    "#residual\n",
+    "xnew = gama*(np.cos(theta_rad)*slit_coord[:,0] -  np.sin(theta_rad)*slit_coord[:,1]) + deltax\n",
+    "\n",
+    "print(\"residual in arcsec:\", (slit_obs[:,0] - xnew)*3600)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 119,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "gamma: 0.997169508946\n",
+      "theta: 1.65934884029 arcmin\n",
+      "dx: -1.61802298925 arcsec\n",
+      "variances: [  3.79825453e-03   7.63565888e+00   1.31817385e+00]\n",
+      "\n",
+      "residual in arcsec: [ 0.00025675 -0.0003499   0.00049341]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# remove vertical scan \n",
+    "mat = np.hstack((slit_coord*[1.,-1], np.ones((3,1)))) # xn -x = x dgama - theta y + dx \n",
+    "matinv =  np.linalg.inv(mat)\n",
+    "data = slit_obs[:,0] - slit_coord[:,0]\n",
+    "sol = matinv.dot(data)\n",
+    "gama = 1 + sol[0]\n",
+    "theta_rad = sol[1]\n",
+    "deltax = sol[2]\n",
+    "theta = theta_rad*180/np.pi*60 #arcmin\n",
+    "print(\"gamma: {}\\ntheta: {} arcmin\\ndx: {} arcsec\".format(gama, theta, deltax*3600))\n",
+    "covar = matinv.dot(matinv.T)\n",
+    "# accuracy, assuming 1 arcsec measurement error\n",
+    "print(\"variances: {}\\n\".format(np.sqrt(np.diag(covar))/3600*[1, 180/np.pi*60, 3600])) #\n",
+    "#residual\n",
+    "xnew = gama*(np.cos(theta_rad)*slit_coord[:,0] -  np.sin(theta_rad)*slit_coord[:,1]) + deltax\n",
+    "\n",
+    "print(\"residual in arcsec:\", (slit_obs[:,0] - xnew)*3600)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 130,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "theta: 1.88673720181 arcmin\n",
+      "dx: -0.758970724453 arcsec\n",
+      "dy: -3.61251269143 arcsec\n",
+      "variances: [ 7.62955961  0.63930315  1.51769774]\n",
+      "\n",
+      "residual in arcsec: [ 0.58159653 -0.13624841 -0.44548655]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# without gama\n",
+    "row1   = np.hstack((slit_coord[0,0], np.array([0., 1.]))) # yn -y = theta x  + y dgama + dy\n",
+    "row2_4 = np.hstack((-slit_coord[:,[1]], np.ones((3,1)), np.zeros((3,1)))) # xn -x = x dgama - theta y + dx \n",
+    "mat = np.vstack((row1, row2_4))\n",
+    "matinv =  np.linalg.pinv(mat)\n",
+    "data = np.concatenate((slit_obs[[0],1] - slit_coord[[0],1], slit_obs[:,0] - slit_coord[:,0]))\n",
+    "sol = matinv.dot(data)\n",
+    "#gama = 1 + sol[0]\n",
+    "theta_rad = sol[0]\n",
+    "deltax = sol[1]\n",
+    "deltay = sol[2]\n",
+    "theta = theta_rad*180/np.pi*60 #arcmin\n",
+    "print(\"theta: {} arcmin\\ndx: {} arcsec\\ndy: {} arcsec\".format(theta, deltax*3600, deltay*3600))\n",
+    "covar = matinv.dot(matinv.T)\n",
+    "# accuracy, assuming 1 arcsec measurement error\n",
+    "print(\"variances: {}\\n\".format(np.sqrt(np.diag(covar))/3600*[180/np.pi*60, 3600, 3600])) #\n",
+    "#residual\n",
+    "xnew = (np.cos(theta_rad)*slit_coord[:,0] -  np.sin(theta_rad)*slit_coord[:,1]) + deltax\n",
+    "\n",
+    "print(\"residual in arcsec:\", (slit_obs[:,0] - xnew)*3600)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 131,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "G2UVnew  = Guider2UV(guider_wcs=G2UV_F3.GuiderP.w, \n",
+    "                     Field_center=G2UV_F3.FieldP.center, \n",
+    "                     Field_rotation=G2UV_F3.FieldP.rotation,\n",
+    "                     mask_rotation=G2UV_F3.mask_rotation + theta*u.arcmin)\n",
+    "\n",
+    "#deltaFOV = - 1/gama*deltax\n",
+    "\n",
+    "#G2UVnew  = Guider2UV(guider_wcs=G2UV.GuiderP.w, \n",
+    "#                     Field_center=G2UV.FieldP.center, \n",
+    "#                     Field_rotation=G2UV.FieldP.rotation,\n",
+    "#                     Field_gamma=gama)\n",
+    "#                     #mask_rotation=theta*u.arcmin)\n",
+    "#\n",
+    "#deltaFOV = - deltax\n",
+    "\n",
+    "newFOV = coordinates.SkyCoord(G2UV_F3.FOV_guider_coord.lon + deltax*u.deg, \n",
+    "                              G2UV_F3.FOV_guider_coord.lat + deltay*u.deg,\n",
+    "                              frame = G2UV_F3.GuiderP.localframe)\n",
+    "                     \n",
+    "G2UVnew.FOV_guider_coord = newFOV\n",
+    "\n",
+    "#G2UVnew.FOV_guider_coord = G2UV.FOV_guider_coord\n",
+    "\n",
+    "\n",
+    "# check slit 1\n",
+    "G2UVnew.pattern_coord = G2UV_F3.pattern_coord \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Guiding stars"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 132,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "star_target_path = '/home/dvibert/ownCloud/FIREBALL/Target_selection_meeting_NY_20170405/GuidingStars/'\n",
+    "F3_stars = Table.read(star_target_path + \"F3_guidingstars.fits\", format='fits')\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### star #5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 133,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Internal count     RA        DEC        X         Y      GAIA gband SDSS gband SDSS rband    Xguider       Yguider       Xguider2      Yguider2  \n",
+      "-------------- ---------- --------- --------- ---------- ---------- ---------- ---------- ------------- ------------- ------------- -------------\n",
+      "             5 352.228576 -0.041124 -4.843635 -10.790471          9         10          9 353.410185504 982.968196799 341.453693558 969.815457993\n",
+      "Star coord in guider local frame: [u'-0d04m23.4946s 0d06m10.1845s']\n",
+      "Star coord in guider pix: [ 340.26967399] [ 965.12470346]\n",
+      "EL: [-131.61567159] arcsec \n",
+      "CE: [-180.22614485] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(F3_stars[4])\n",
+    "star_ra = F3_stars[4]['RA']\n",
+    "star_dec = F3_stars[4]['DEC']\n",
+    "guid_star_pos_ang = coordinates.SkyCoord(star_ra*u.deg, star_dec*u.deg) #star 29\n",
+    "star_coord = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=True) \n",
+    "star_pix = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=False) \n",
+    "\n",
+    "print(\"Star coord in guider local frame:\", star_coord.to_string(u'dms'))\n",
+    "print(\"Star coord in guider pix: {} {}\".format(*star_pix))\n",
+    " \n",
+    "#frame move\n",
+    "theta_EL =  star_coord.lon.deg/2./Elg\n",
+    "theta_CE = -star_coord.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "star seen at 345.5 956.7"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### star #9"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 134,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Internal count     RA       DEC        X         Y     GAIA gband SDSS gband SDSS rband    Xguider       Yguider       Xguider2      Yguider2  \n",
+      "-------------- ---------- -------- --------- --------- ---------- ---------- ---------- ------------- ------------- ------------- -------------\n",
+      "             9 352.267202 0.107397 -3.199912 -4.470323         --         13         12 955.786183942 813.226580835 946.488170861 807.978677335\n",
+      "Star coord in guider local frame: [u'0d04m33.0486s 0d03m58.309s']\n",
+      "Star coord in guider pix: [ 945.44670795] [ 803.76787249]\n",
+      "EL: [ 136.38789337] arcsec \n",
+      "CE: [-116.02190454] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(F3_stars[8])\n",
+    "star_ra = F3_stars[8]['RA']\n",
+    "star_dec = F3_stars[8]['DEC']\n",
+    "guid_star_pos_ang = coordinates.SkyCoord(star_ra*u.deg, star_dec*u.deg) #star 29\n",
+    "star_coord = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=True) \n",
+    "star_pix = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=False) \n",
+    "\n",
+    "print(\"Star coord in guider local frame:\", star_coord.to_string(u'dms'))\n",
+    "print(\"Star coord in guider pix: {} {}\".format(*star_pix))\n",
+    " \n",
+    "#frame move\n",
+    "theta_EL =  star_coord.lon.deg/2./Elg\n",
+    "theta_CE = -star_coord.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "star seen at 944.0 793.2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### star #20"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 135,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Internal count     RA        DEC       X         Y      GAIA gband SDSS gband SDSS rband    Xguider       Yguider       Xguider2      Yguider2  \n",
+      "-------------- ---------- --------- -------- ---------- ---------- ---------- ---------- ------------- ------------- ------------- -------------\n",
+      "            20 352.387774 -0.111235 1.930845 -13.773961         --         12         12 58.5063837721 322.426324861 55.4011865268 304.876277284\n",
+      "Star coord in guider local frame: [u'-0d08m28.1995s -0d03m26.3166s']\n",
+      "Star coord in guider pix: [ 54.67366805] [ 299.90384772]\n",
+      "EL: [-253.84590959] arcsec \n",
+      "CE: [ 100.44622758] arcsec\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(F3_stars[19])\n",
+    "star_ra = F3_stars[19]['RA']\n",
+    "star_dec = F3_stars[19]['DEC']\n",
+    "guid_star_pos_ang = coordinates.SkyCoord(star_ra*u.deg, star_dec*u.deg) #star 29\n",
+    "star_coord = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=True) \n",
+    "star_pix = G2UVnew.SienceMask2guider(guid_star_pos_ang , world=True, angle=False) \n",
+    "\n",
+    "print(\"Star coord in guider local frame:\", star_coord.to_string(u'dms'))\n",
+    "print(\"Star coord in guider pix: {} {}\".format(*star_pix))\n",
+    " \n",
+    "#frame move\n",
+    "theta_EL =  star_coord.lon.deg/2./Elg\n",
+    "theta_CE = -star_coord.lat.deg/2./CEg\n",
+    "print(\"EL: {} arcsec \\nCE: {} arcsec\".format(theta_EL*3600, theta_CE*3600))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "star seen at 52.7 302.3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.15"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

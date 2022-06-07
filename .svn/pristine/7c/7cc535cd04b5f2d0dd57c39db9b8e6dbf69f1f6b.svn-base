@@ -1,0 +1,11 @@
+param,value
+exptime,EXPTIME-EXPOSURE
+gain,EMGAIN
+temperature,TEMP
+physical_region,1063-2125-0-2069
+extension,.fits
+format_date,%y%m%d-%HH%Mm%Ss
+verbose,0
+ConversionGain,0.53
+Autocorr_region_1D,1500-2000-1500-2000
+Autocorr_region_2D,1500-2000-1500-2000
