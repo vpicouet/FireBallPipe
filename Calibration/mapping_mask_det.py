@@ -12,10 +12,10 @@ import os
 import numpy as np
 from astropy.table import Table
 from pkg_resources  import resource_filename
-
+import matplotlib.pyplot as plt
 from .mapping import Mapping
 
-    
+    #%%
 def map_mask_detector(table, deg=[5, 2], bywave=True):
     '''
     From a table of observed mask slits (or holes) on the detector, 
@@ -36,7 +36,8 @@ def map_mask_detector(table, deg=[5, 2], bywave=True):
         mapping = Mapping(wavelength=wset)
     else:
         mapping = Mapping()
-        
+    
+    
     mapping.set(subt['wavelength'], subt['xmask'], subt['ymask'], subt['X_IMAGE'], subt['Y_IMAGE'] , deg)
         
     # compute residuals
@@ -76,6 +77,8 @@ def map_mask_detector(table, deg=[5, 2], bywave=True):
     return mapping, centers
 
 
+
+#%%
 def recompute_mask_pos(table, mask):
     '''
     Add the xmask and ymask missing column in the table
@@ -94,9 +97,9 @@ def recompute_mask_pos(table, mask):
     if mask == 'grid':
         slit_location = os.path.join(Target_dir, 'grid_mask.txt')
     if mask == 'F2':
-        slit_location = os.path.join(Target_dir, 'targets_F2.txt')
+        raise(TypeError,"Need to have this catalogs for F2 and F3")#slit_location = os.path.join(Target_dir, 'targets_F2.txt')
     if mask == 'F3':
-        slit_location = os.path.join(Target_dir, 'targets_F3.txt')
+        raise(TypeError,"Need to have this catalogs for F2 and F3")#slit_location = os.path.join(Target_dir, 'targets_F2.txt')
     if mask == 'F4':
         slit_location = os.path.join(Target_dir, 'targets_F4.txt')
     

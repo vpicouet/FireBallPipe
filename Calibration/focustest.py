@@ -29,7 +29,7 @@ from astropy.visualization import AsinhStretch, AsymmetricPercentileInterval, Im
 from numpy.polynomial.polynomial import polyval2d#, polyval3d
 from mpl_toolkits.mplot3d import axes3d
 from pkg_resources  import resource_filename
-from .DS9Utils import create_DS9regions, create_DS9regions2
+from pyds9plugin.DS9Utils import create_ds9_regions
 try:
     from astroML.crossmatch import crossmatch
 except:
@@ -1909,23 +1909,7 @@ class Focus(object):
             self.ID =[self.internalCount]*len(self.w) #[self.internalCount for i in range(len(self.w))] 
             xmaskw =[self.xmask]*len(self.w) #[self.xmask for i in range(len(self.w))] 
             ymaskw =[self.xmask]*len(self.w) #[self.ymask for i in range(len(self.w))] 
-#            create_DS9regions2(xdetpix[3]+10, ydetpix[3]+10,  text = self.internalCount, form='# text', save=True, savename=self.all.filename()[:-5]+'names', color='red')
-#            create_DS9regions2(xdetpix[2]+10, ydetpix[2]+10,  text = self.internalCount, form='# text', save=True, savename=self.all.filename()[:-5]+'names', color='green')
-#            create_DS9regions2(xdetpix[1]+10, ydetpix[1]+10,  text = self.internalCount, form='# text', save=True, savename=self.all.filename()[:-5]+'names', color='blue')
-#create_DS9regions(xdetpix, ydetpix, form=['bpanda']*len(self.w), radius=10, save=True, savename=self.all.filename()[:-5]+'predicted', color = colors,ID=self.ID)#self.internalCount None['white','blue','orange','red']
-#            create_DS9regions2(xdetpix[1], ydetpix[1], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='blue')
-#            create_DS9regions2(xdetpix[2], ydetpix[2], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='green')
-#            create_DS9regions2(xdetpix[3], ydetpix[3], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='red')
-#            create_DS9regions2(xdetpix[0], ydetpix[0], form='annulus', radius=20, save=True, savename=self.all.filename()[:-5]+'predicted', color='white')
-            
-            
-            
-            create_DS9regions2(xdetpix[1], ydetpix[1], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='blue')
-            #create_DS9regions2(xdetpix[2], ydetpix[2], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='green')
-            #create_DS9regions2(xdetpix[3], ydetpix[3], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='red')
-            #create_DS9regions2(xdetpix[0], ydetpix[0], form='annulus', radius=20, save=True, savename=self.all.filename()[:-5]+'predicted', color='white')
-            
-            #create_DS9regions2(xdetpix[0], ydetpix[0], form='box', radius=30, save=True, savename="test3", color='white')
+            # create_ds9_regions(xdetpix[1], ydetpix[1], form='bpanda', radius=15, save=True, savename=self.all.filename()[:-5]+'predicted', color='blue')
 
             xdetpix, ydetpix, wtab = np.broadcast_arrays(xdetpix, ydetpix, wtab)
             t = []
@@ -1950,7 +1934,8 @@ class Focus(object):
         else:
             if verbose:
                 print('Use of sextractor')
-            self.extractCatalog(**kwargs)            
+            # self.extractCatalog(**kwargs)            
+            self.tranform_catalog(**kwargs)            
             print('Number of sources detected and kept: ', len(self.table))
 
 #        self.Fit2D( **kwargs)
@@ -2003,7 +1988,7 @@ class Focus(object):
 #np.array((a.table['X_IMAGE'][:]).astype('string'))+np.array((a.table['X_IMAGE'][:]).astype('string'))
 #        create_DS9regions([self.table['X_IMAGE']],[self.table['Y_IMAGE']],radius=5,save=True,savename=self.all.filename()[:-5],ID=[centers])
         centers = np.array(['%0.1f - %0.1f'%(x+1,y+1) for x,y in zip(self.table['X_IMAGE'],self.table['Y_IMAGE'])])
-        create_DS9regions2(self.table['X_IMAGE'],self.table['Y_IMAGE'], radius=2, form = 'circle',save=False,savename=self.all.filename()[:-5]+'detected',text = centers)
+        # create_ds9_regions(self.table['X_IMAGE'],self.table['Y_IMAGE'], radius=2, form = 'circle',save=False,savename=self.all.filename()[:-5]+'detected',text = centers)
 
         if plot:
             if not self.abort:
@@ -2492,6 +2477,47 @@ class Focus(object):
         if fname:
             self.table = Table.read(self._DFLT_catalog + fname + self._DFLT_extension)
             self.table = self.table[(self.table['FLUX_ISO']<1e5) & (self.table['FWHM_IMAGE']>2) & (self.table['FWHM_IMAGE']<25) & (self.table['ISOAREA_IMAGE']>30) & (self.table['ISOAREA_IMAGE']<300)]
+
+    def transform_catalog(self, **kwargs):
+        """Extract sources from a catalog of detection generated with sextractor
+        """
+        fname = kwargs.get('filename', False)
+        if fname:
+            self.table = Table.read(fname.replace(".fits","_cat.fits"))
+            
+            self.sources['X_IMAGE'] = self._DFLT_Yinf + self.sources['xcentroid']
+            self.sources['Y_IMAGE'] = self._DFLT_Xinf + self.sources['ycentroid']
+            self.sources['NUMBER'] = self.sources['id']
+            self.sources['xmask'] = float(0)
+            self.sources['ymask'] = float(0)
+            try:
+                self.sources['Image Number'] = float(os.path.basename(self.all.filename())[-11:-4])
+            except ValueError:
+                pass
+                
+            self.sources['DATE'] = self.all[0].header['DATE']
+                
+            self.sources['Internal-count'] = '-'*15
+            for xy in ['x', 'y']:
+                self.sources['FWHM_' + xy] = float(0)
+                self.sources['Amplitude_after_stack_' + xy] = float(0)
+                self.sources['Offset_after_stack_' + xy] = float(0)
+                self.sources['SumPix_' + xy] = float(0)
+                self.sources['MaxPix_' + xy] = float(0)
+                self.sources['SlitSize_' + xy] = float(0)
+                
+                self.sources['Background_' + xy] = float(0)
+                self.sources['Background_var_' + xy] = float(0)
+                
+                self.sources[xy.upper() + '_IMAGE_var'] = float(0)
+                self.sources['SlitSize_var_' + xy] = float(0)
+                self.sources['FWHM_var_' + xy] = float(0)
+                self.sources['Amplitude_after_stack_var_' + xy] = float(0)
+                self.sources['Offset_after_stack_var_' + xy] = float(0)
+    
+                self.sources['FlagFit_' + xy] = int(0)
+            # self.table = self.table[(self.table['FLUX_ISO']<1e5) & (self.table['FWHM_IMAGE']>2) & (self.table['FWHM_IMAGE']<25) & (self.table['ISOAREA_IMAGE']>30) & (self.table['ISOAREA_IMAGE']<300)]
+
 #	    print(len(self.table), 'spots found at positions' , self.table['X_IMAGE'], self.table['Y_IMAGE'])
 
 
