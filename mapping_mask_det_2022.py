@@ -30,18 +30,31 @@ import numpy as np
 import sys 
 lambda_lya = 0.121567
 
+field="grid"
+field="F1"
 ################ F1 +119
 ######################################################
 
 # path = '/data/FireBall/FTS-06-2018/180612/'
 #filename = 'image-000275-000284-Zinc-with_dark119-stack_table.csv'
 # imagename = 'image-000275-000284-Zinc-with_dark119-stack.fits'
-t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/XYCalibration/Detector_Mask_mappings/image-000275-000284-Zinc-with_dark119-stack_table.csv")
+# t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/XYCalibration/Detector_Mask_mappings/image-000275-000284-Zinc-with_dark119-stack_table.csv")
 # fn = "/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F1/F1_2022_5_-105.fits"
-t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F1/F1_2022_6_-106.csv")
-t = t[t["amp_x"]>5]
-
-mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Slits/F1_new.csv")
+try:
+    t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106.csv"%(field,field))
+    t = t[t["amp_x"]>5]
+except FileNotFoundError:
+    t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106_cat.fits"%(field,field))
+    t= t[t["FLUX_MAX"]>200]
+     
+# mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Slits/%s_new.csv"%(field))
+mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Targets/2022/targets_%s.txt"%(field),format="ascii")
+try:
+    mask_table["xmask"],mask_table["ymask"] = mask_table["xmm"],mask_table["ymm"]
+except KeyError:
+    mask_table["xmm"],mask_table["ymm"] = mask_table["x_mm"],mask_table["y_mm"]
+    mask_table["xmask"],mask_table["ymask"] = mask_table["xmm"],mask_table["ymm"]
+    
 mask_table1 = mask_table.copy()
 mask_table2 = mask_table.copy()
 mask_table["wavelength"] = 0.20255
@@ -79,11 +92,21 @@ mask_table["Y_IMAGE"] = mask_table["y"]
 mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #& (mask_table["wavelength"]==0.20619)
 
 mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,3,3])
-mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/mapping-mask-det-w-2022-5-F1.pkl')
+mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/mapping-mask-det-w-2022-5-%s.pkl'%(field))
 
 sys.exit()
 
-#%%
+
+#%%CREATE REGION FROM MAPPING
+
+
+mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/mapping-mask-det-w-2022-5-%s.pkl'%(field))
+
+
+mappings_linw.map(0.20619,x=mask_table['xmask'][mask_mapping],y=mask_table['ymask'][mask_mapping])[0]
+
+
+#%% PLOT DISTORTION MAP
 mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) & (mask_table["wavelength"]==0.20619)
 
 fig, (ax0,ax1) = plt.subplots(1,2)

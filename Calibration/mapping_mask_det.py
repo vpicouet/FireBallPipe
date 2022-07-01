@@ -85,6 +85,7 @@ def recompute_mask_pos(table, mask):
     for old version of focustest, when windowing was effective the xmask and ymask 
     were not saved in the table
     '''
+    __file__ = '/Users/Vincent/Github/FireBallPipe/Calibration/mapping_mask_det.py'
 
     try:
         Target_dir = resource_filename('Calibration', 'Targets')
@@ -175,15 +176,17 @@ image
         print(('Mapped region file saved at: ' +  savename + '.reg'))
         return 
 
+    #%%
 
 if __name__ == '__main__':
-    
     path = '/data/FireBall/FTS-06-2018/180605/'
+    path="/Volumes/ExtremePro/LAM/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/180605/"
+    
     filename = 'image-120-124-Zinc-Dark-substarcted119-stack_table.csv'
 
     t=Table.read(path+filename, format='csv')
 
-    xmask, ymask, internalCount = recompute_mask_pos(t, 'F1')
+    xmask, ymask, internalCount, z = recompute_mask_pos(t, 'F1')
     
     mappings, centers = map_mask_detector(t)
     print(centers)
