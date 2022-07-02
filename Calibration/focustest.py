@@ -35,7 +35,7 @@ try:
 except:
     pass
 
-from .mapping import Mapping    
+# from .mapping import Mapping    
 
 
 #from mapping import Mapping    
@@ -313,16 +313,16 @@ def PlotFocus2DGuider(path=1, pa=-161,n=22,PlanDetector=None, motors=np.linspace
 
 
 
-#starsxF1 = [836.6,990.2,954.7]	
-#starsyF1 = [344.4,476.9,952.1]
-#path = '/Users/Vincent/Nextcloud/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/FBGuider2018_NEW/OpenCluster/F1/'
-#
-#x = np.array([1683,1854,1866,2036,1849,2021])
-#y = np.array([1260,1260,1040,1040,614,614])
-#z = np.array([13.143,13.081,13.118,13.068,13.131,13.118])
-##plt.figure()
-#X,Y,Z, ax, Cdet = fit_quadratic_curve(x,y,z,n=100,order=1)
-#plt.show()
+starsxF1 = [836.6,990.2,954.7]	
+starsyF1 = [344.4,476.9,952.1]
+path = '/Users/Vincent/Nextcloud/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/FBGuider2018_NEW/OpenCluster/F1/'
+
+x = np.array([1683,1854,1866,2036,1849,2021])
+y = np.array([1260,1260,1040,1040,614,614])
+z = np.array([13.143,13.081,13.118,13.068,13.131,13.118])
+#plt.figure()
+X,Y,Z, ax, Cdet = fit_quadratic_curve(x,y,z,n=100,order=1)
+plt.show()
 #
 #
 #
@@ -479,7 +479,7 @@ def fit_quadratic_curve(x,y,z,n,sigma_z=None,order=2,Plot=True):
         plt.xlabel('X')
         plt.ylabel('Y')
         ax.set_zlabel('Z')
-        ax.axis('equal')
+        ax.axis('auto')
         ax.axis('tight')
     else:
         ax=1
