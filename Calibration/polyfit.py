@@ -6,10 +6,16 @@ Created on Tue Jul  3 10:20:08 2018
 @author: dvibert
 """
 
+import sys, os
+
+
 import numpy as np
 from numpy.polynomial import polynomial as poly
 
-from .polynomial import  polyfit3d, polyfit2d, polyfit2d_wocty
+sys.path.insert(1, '../Calibration')
+sys.path.insert(1, '../guider2UV')
+
+from polynomial import  polyfit3d, polyfit2d, polyfit2d_wocty
 
 polyfit_func = {"2d": polyfit2d, "3d": polyfit3d, "2d_woct": polyfit2d_wocty}
 
