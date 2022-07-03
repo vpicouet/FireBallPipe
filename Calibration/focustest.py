@@ -179,10 +179,68 @@ def findpinhole(a,b):
     return np.array([holex,holey])
 #findpinhole(a,b)    
 
+def fit_quadratic_curve(x,y,z,n,sigma_z=None,order=2,Plot=True):
+    # print(x,y,z)
+    if sigma_z is None:
+        print(1)
+        index = np.isfinite(z) 
+#        data = np.array(zip(x[index],y[index],z[index]))  
+        data = np.array([x[index],y[index],z[index]]).T
+    else:
+        # print(2)
+        index = (np.isfinite(z))  & (np.isfinite(sigma_z)) 
+        # print(z[index]/sigma_z[index])
+        data = np.array([x[index],y[index],z[index]/sigma_z[index]])
+  # regular grid covering the domain of the data
+    # print(data)
+    X,Y = np.meshgrid(np.linspace(x.min(), x.max(), n), np.linspace(y.min(), y.max(), n))
+    XX = X.flatten()
+    YY = Y.flatten()
+    order = order  # 1: linear, 2: quadratic
+    if order == 1:
+        # best-fit linear plane
+        if sigma_z is None:
+            A = np.c_[data[:,0], data[:,1], np.ones(data.shape[0])]
+        else:
+            # print(1,data)
+            A = np.c_[data[:,0], data[:,1], np.ones(data.shape[0])] #/ sigma_z[:,np.newaxis]
+            
+        C,_,_,_ = linalg.lstsq(A, data[:,2])    # coefficients        
+        # evaluate it on grid
+        Z = C[0]*X + C[1]*Y + C[2]        
+        # or expressed using matrix/vector product
+        #Z = np.dot(np.c_[XX, YY, np.ones(XX.shape)], C).reshape(X.shape)    
+    elif order == 2:
+        if sigma_z is None:
+        # best-fit quadratic curve
+            A = np.c_[np.ones(data.shape[0]), data[:,:2], np.prod(data[:,:2], axis=1), data[:,:2]**2]
+        else:
+        # best-fit quadratic curve
+            A = np.c_[np.ones(data.shape[0]), data[:,:2], np.prod(data[:,:2], axis=1), (data[:,:2]**2)] / sigma_z[:,np.newaxis]
+        C,_,_,_ = linalg.lstsq(A, data[:,2])        
+        # evaluate it on a grid
+        Z = np.dot(np.c_[np.ones(XX.shape), XX, YY, XX*YY, XX**2, YY**2], C).reshape(X.shape)
+    if Plot==True:
+        # print(data)
+        alpha=0.2
+        fig = plt.figure(figsize=(15,10))#(10,8)
+        ax = fig.gca(projection='3d')
+        ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=alpha, color = 'r')
+        ax.scatter(data[:,0], data[:,1],  data[:,2], c='r', s=20)#z[index]
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        ax.set_zlabel('Z')
+        # ax.axis('equal')
+        # ax.set_box_aspect([1,1,1])
+        ax.axis('tight')
+    else:
+        ax=1
+    return X,Y,Z, ax, C
 
 def PlotFocus2DGuider(path=1, pa=-161,n=22,PlanDetector=None, motors=np.linspace(11.95,14.45,11), dist_max=30, Plot=False, sigma=True,order=1,starsx=None,starsy=None):
     npa = 'pa%+03d'%(pa)
-    files = glob.glob(path + '/*' + npa + '*table.fits')[-11:]
+    # read all the focus tables
+    files = glob.glob(path + '*' + npa + '*table.fits')[-11:]
     print (files)
     stars = []
     fwhms = []
@@ -298,7 +356,8 @@ def PlotFocus2DGuider(path=1, pa=-161,n=22,PlanDetector=None, motors=np.linspace
             defocus = np.dot(np.c_[1, xstar, ystar, xstar*ystar, xstar**2, ystar**2], C)
 #        ax.plot(np.ones(2)*xstar, np.ones(2)*ystar, np.linspace(focus,defocus,2),linewidth=6,c='black')
         focstar = PlanDetector[0]*xstar + PlanDetector[1]*ystar + offsetDet
-        ax.plot(np.ones(2)*xstar, np.ones(2)*ystar, np.linspace(focstar-diffInfAutoc,defocus,2),linewidth=6,c='black')
+        # print(np.ones(2)*xstar, np.ones(2)*ystar, np.linspace(focstar-diffInfAutoc,defocus,2),focstar-diffInfAutoc,defocus)
+        ax.plot3D(np.ones(2)*xstar, np.ones(2)*ystar, np.linspace((focstar-diffInfAutoc)[0],defocus[0],2),linewidth=6,c='black')
     #if PlanDetector is None:
     ax.plot_surface(x, y, Zfocus * focus - diffInfAutoc, rstride=1, cstride=1, alpha=0.2,color='orange',label='Guider focus autocol')
     ax.plot_surface(x, y, Zfocus * detfocus - diffInfAutoc, rstride=1, cstride=1, alpha=0.2,color='b',label='Detector focus autocol')
@@ -313,26 +372,26 @@ def PlotFocus2DGuider(path=1, pa=-161,n=22,PlanDetector=None, motors=np.linspace
 
 
 
-starsxF1 = [836.6,990.2,954.7]	
-starsyF1 = [344.4,476.9,952.1]
-path = '/Users/Vincent/Nextcloud/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/FBGuider2018_NEW/OpenCluster/F1/'
-
-x = np.array([1683,1854,1866,2036,1849,2021])
-y = np.array([1260,1260,1040,1040,614,614])
-z = np.array([13.143,13.081,13.118,13.068,13.131,13.118])
-#plt.figure()
-X,Y,Z, ax, Cdet = fit_quadratic_curve(x,y,z,n=100,order=1)
-plt.show()
-#
-#
-#
-#starsxF1 = [836.6,990.2,954.7]	
-#starsyF1 = [344.4,476.9,952.1]
-##x,y,z,C = PlotFocus2DGuider(path=path, pa=119,sigma=True,order=2,starsx=starsxF1,starsy=starsyF1)
-#
-#x,y,z,C,focus1,focus2 = PlotFocus2DGuider(path=path,PlanDetector=Cdet, pa=119,sigma=True,order=2,starsx=starsxF1,starsy=starsyF1,Plot=True)
+# starsxF1 = [836.6,990.2,954.7]	
+# starsyF1 = [344.4,476.9,952.1]
+# # path = '/Users/Vincent/Nextcloud/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/FBGuider2018_NEW/OpenCluster/F1/'
+# path = '/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018/AIT-Optical-FTS-201805/FBGuider2018_NEW/OpenCluster/F1/'
+# x = np.array([1683,1854,1866,2036,1849,2021])
+# y = np.array([1260,1260,1040,1040,614,614])
+# z = np.array([13.143,13.081,13.118,13.068,13.131,13.118])
+# #plt.figure()
+# X,Y,Z, ax, Cdet = fit_quadratic_curve(x,y,z,n=100,order=1)
+# plt.show()
 
 
+
+# starsxF1 = [836.6,990.2,954.7]	
+# starsyF1 = [344.4,476.9,952.1]
+# #x,y,z,C = PlotFocus2DGuider(path=path, pa=119,sigma=True,order=2,starsx=starsxF1,starsy=starsyF1)
+
+# x,y,z,C,focus1,focus2 = PlotFocus2DGuider(path=path,PlanDetector=Cdet, pa=119,sigma=True,order=2,starsx=starsxF1,starsy=starsyF1,Plot=True)
+
+#%%
 
 def wDetectorCenter(position=1559, wave = 206.20,dispersion=608/13, maskx=0):#disp on mu/nm donc pixel/nm
     print ('dispersion={}\n'.format(dispersion))
@@ -435,55 +494,7 @@ def ConvolveSlit2D_PSF2(xy, amp=1, l1 = 3, l2=3, L1=9, L2=9, sigma2 = 40):
 #print(new)
 #plot(np.arange(-100,100),ConvolveBoxPSF(np.arange(-100,100),1,r1,r2,0))
 #plot([new,new],[0,35])
-def fit_quadratic_curve(x,y,z,n,sigma_z=None,order=2,Plot=True):
-    if sigma_z is None:
-        index = np.isfinite(z) 
-#        data = np.array(zip(x[index],y[index],z[index]))  
-        data = np.array([x[index],y[index],z[index]]).T
-    else:
-        index = (np.isfinite(z))  & (np.isfinite(sigma_z)) 
-        data = np.array(zip(x[index],y[index],z[index]/sigma_z[index]))
-  # regular grid covering the domain of the data
-    X,Y = np.meshgrid(np.linspace(x.min(), x.max(), n), np.linspace(y.min(), y.max(), n))
-    XX = X.flatten()
-    YY = Y.flatten()
-    
-    order = order  # 1: linear, 2: quadratic
-    if order == 1:
-        # best-fit linear plane
-        if sigma_z is None:
-            A = np.c_[data[:,0], data[:,1], np.ones(data.shape[0])]
-        else:
-            A = np.c_[data[:,0], data[:,1], np.ones(data.shape[0])] / sigma_z[:,np.newaxis]
-            
-        C,_,_,_ = linalg.lstsq(A, data[:,2])    # coefficients        
-        # evaluate it on grid
-        Z = C[0]*X + C[1]*Y + C[2]        
-        # or expressed using matrix/vector product
-        #Z = np.dot(np.c_[XX, YY, np.ones(XX.shape)], C).reshape(X.shape)    
-    elif order == 2:
-        if sigma_z is None:
-        # best-fit quadratic curve
-            A = np.c_[np.ones(data.shape[0]), data[:,:2], np.prod(data[:,:2], axis=1), data[:,:2]**2]
-        else:
-        # best-fit quadratic curve
-            A = np.c_[np.ones(data.shape[0]), data[:,:2], np.prod(data[:,:2], axis=1), (data[:,:2]**2)] / sigma_z[:,np.newaxis]
-        C,_,_,_ = linalg.lstsq(A, data[:,2])        
-        # evaluate it on a grid
-        Z = np.dot(np.c_[np.ones(XX.shape), XX, YY, XX*YY, XX**2, YY**2], C).reshape(X.shape)
-    if Plot==True:
-        fig = plt.figure(figsize=(15,10))#(10,8)
-        ax = fig.gca(projection='3d')
-        ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.2,color = 'r')
-        ax.scatter(data[:,0], data[:,1], z[index], c='r', s=20)
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.axis('auto')
-        ax.axis('tight')
-    else:
-        ax=1
-    return X,Y,Z, ax, C
+
 
 def quicklook(path,ptype='detector', mmr=None,t=1):
     image =[]
