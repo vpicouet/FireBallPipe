@@ -3,4 +3,5 @@ scipy
 matplotlib
 astropy
 matplotlib
-pickle
+
+#pickle
