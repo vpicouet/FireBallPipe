@@ -545,8 +545,14 @@ Guider2UV object:
         #nslits = slits.size
         slit_coords = []
         st = slit_table
+        if "xmm" in st.colnames:
+            x,y = "xmm", "ymm"
+        else:
+            x,y = "x_mm", "y_mm"
+
+
         for s in slits:
-            slit_pos = np.array([st[st['Internal-count']==s]['xmm'][0], st[st['Internal-count']==s]['ymm'][0]])
+            slit_pos = np.array([st[st['Internal-count']==s][x][0], st[st['Internal-count']==s][y][0]])
             print("slit position in mm on mask:", slit_pos)
             slit_coords.append(self.SienceMask2guider(slit_pos, angle=True))
     
