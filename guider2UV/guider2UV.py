@@ -713,7 +713,7 @@ Guider2UV object:
         G2UVcor.mask_rotation = G2UVcor.mask_rotation + theta
         G2UVcor.FOV_center_guider_coord = newFOVcenter
         
-        G2UVcor.FieldP.gamma += dgamma
+        G2UVcor.FieldP.gamma *= gamma
         
         return G2UVcor, residuals
 
