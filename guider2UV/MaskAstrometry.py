@@ -66,7 +66,12 @@ ScienceMaskProjector object:
     gamma: {}
 '''.format(self.localframe, self.gamma)
         return str_
-        
+
+    # THIS SHOULD BE UPDATED for 2022 flight... 
+    #  at least replace with a constant near the expected magnification.
+    # (the model update method in guider2UV is only able to add a small 1+delta factor to this)/
+    # alternatively: return the constant 1.0 here and set self.gamma to the expected value (in deg/mm eg 2.36E-2)  
+    # when instanciating the class (eg when instanciating a Guider2UV object).
     def radial_magnification(self, r, reverse=False):
         if not reverse:
             a =42.26134
