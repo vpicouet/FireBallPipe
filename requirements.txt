@@ -3,5 +3,6 @@ scipy
 matplotlib
 astropy
 matplotlib
+mpl_interactions
 
 #pickle
