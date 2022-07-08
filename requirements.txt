@@ -4,5 +4,6 @@ matplotlib
 astropy
 matplotlib
 mpl_interactions
+pandas
 
 #pickle
