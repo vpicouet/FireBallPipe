@@ -300,10 +300,11 @@ def compute_autocoll_moves(targets_coord, hystcomp = False, CEg = 1.02928, Elg =
         flags = np.ones(ntargets, dtype=bool)
     
     print("\nsiderostat moves sequence: ")
-    for m,f in zip(moves, flags):
-        print("EL: {:.1f} arcsec ; CE {:.1f} arcsec ; image: {}".format(m[0], m[1], f))
+    # print(moves.shape, flags.shape)
+    # for m,f in zip(moves, flags):
+    #     print("EL: {:.1f} arcsec ; CE {:.1f} arcsec ; image: {}".format(m[0], m[1], f))
     
-    return moves
+    return moves, flags
     
 
     
@@ -556,10 +557,10 @@ Guider2UV object:
             print("slit position in mm on mask:", slit_pos)
             slit_coords.append(self.SienceMask2guider(slit_pos, angle=True))
     
-        moves = compute_autocoll_moves(slit_coords, hystcomp)
+        moves, flags = compute_autocoll_moves(slit_coords, hystcomp)
         slit_coords = slit_coords + slit_coords[::-1] # revert 
         
-        return moves, slit_coords
+        return moves, flags, slit_coords
     
         
     def compute_autocoll_move_stars(self, stars, star_table, hystcomp = False, CEg = 1.02928, Elg = 1.00379):
@@ -572,12 +573,12 @@ Guider2UV object:
 
         for s in stars:
             star_pos_radec = all_star_coords[st['Internal count']==s]
-            print("star position Ra/Dec: ", star_pos_radec)
+            # print("star position Ra/Dec: ", star_pos_radec)
             star_coords.append(self.SienceMask2guider(star_pos_radec, world=True, angle=True))
     
-        moves = compute_autocoll_moves(star_coords, hystcomp)
+        moves,flags = compute_autocoll_moves(star_coords, hystcomp)
         
-        return moves, star_coords
+        return moves, flags, star_coords
 
 
     def pattern_in_slit(self, starid , Slit_pos, world=False, FourStarsGuider_pos=None):
