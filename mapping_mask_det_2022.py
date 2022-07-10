@@ -34,7 +34,7 @@ def plt_mapping(mask_table, mappings_linw,field):
     plt.savefig("/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2022/%s.png"%(field))
     plt.show()
     return
-def save_region_file(t,field):
+def save_region_file(t,field,mappings_linw):
     wl = 0.21382
     # x, y  = mappings_linw.map(wl,x=t['x_mask_corrected'],y=t['y_mask_corrected'])
     x, y  = mappings_linw.map(wl,x=t['x_mm'],y=t['y_mm'])
@@ -89,6 +89,8 @@ def fit_magnfication(mask_table, field):
     ##%%
     fig, (ax0,ax1, ax2) = plt.subplots(1,3,figsize=(9,5))
     ax0.scatter(xmm,ymm,label="x0,x0=%0.1f, %0.1f \nθ=%0.2f \nmx,my=%0.2f,%0.2f"%(*a["x"],))
+    for i, l in enumerate(mask_table):
+        ax0.text(xmm[i],ymm[i],l["Internal-count"])
     ax0.set_xlabel("x_mm")#,c=mask_table['wavelength']
     ax0.set_ylabel("y_mm")
     ax1.set_xlabel("x PIX * 0.013")
@@ -178,14 +180,14 @@ def create_mapping(field):
     mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,3,3])
     mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2022/mapping-mask-det-w-2022-5-%s.pkl'%(field))
     # plt_mapping(mask_table, mappings_linw,field)
-    save_region_file(mask_table,field)
+    save_region_file(mask_table,field,mappings_linw)
     mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) & (mask_table["wavelength"]==0.20619)
     fit_magnfication(mask_table[mask_mapping],field)
     return
 
 # curve_fit(guider_to_detector, np.array([mask_table[mask_mapping]["xmm"],mask_table[mask_mapping]["ymm"]]),np.array([mask_table[mask_mapping]["X_IMAGE"],mask_table[mask_mapping]["Y_IMAGE"]]),p0=None)
 
-for field in ["F1","F2","F3","F4","QSO"]:
+for field in ["F1"]:#,"F2","F3","F4","QSO"]:
     create_mapping(field)
     # sys.exit()
 #%%
