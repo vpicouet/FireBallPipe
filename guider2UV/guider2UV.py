@@ -184,7 +184,7 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None):
         
     delta = coord_obs_arr - coord_arr
     
-    plt.figure(figsize=(16,8))
+    plt.figure(figsize=(8,4))
     plt.subplot(121)
     plt.axis('equal')
     plt.title("model versus mesure")
