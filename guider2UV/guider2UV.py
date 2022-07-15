@@ -175,7 +175,7 @@ def fit_model(coord, coord_obs, gamma=True, ytilt=False, weight=None):
     return fullsol, residuals
 
      
-def plot_fit(coord, coord_obs, residuals, labels=None, sol=None):
+def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=None):
     
     n = len(coord)
     
@@ -184,7 +184,10 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None):
         
     delta = coord_obs_arr - coord_arr
     
-    plt.figure(figsize=(8,4))
+    if figsize is None:
+        figsize = (12,6)
+
+    plt.figure(figsize=figsize)
     plt.subplot(121)
     plt.axis('equal')
     plt.title("model versus mesure")
@@ -195,6 +198,7 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None):
     qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
     plt.quiverkey(qv, .8,.9,10, '10 arcsec', color='k')
     plt.ylim(plt.ylim()[::-1])
+    plt.grid(True)
     plt.xlabel('EL arcsec')
     plt.ylabel(' - CE arcsec')
     delta_mean = delta.mean(axis=0)
@@ -214,6 +218,7 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None):
     qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
     plt.quiverkey(qv, .8,.9,10, '10 arcsec', color='k')
     plt.ylim(plt.ylim()[::-1])
+    plt.grid(True)
     plt.xlabel('EL arcsec')
     plt.ylabel(' - CE arcsec')
     
@@ -687,12 +692,12 @@ Guider2UV object:
 
 
     def  update_model(self, coord, coord_obs, gamma=True, ytilt=False, weight=None,
-                      inplace=False, plot=False, labels=None):
+                      inplace=False, plot=False, labels=None, figsize=None):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
         
         if plot:
-            plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol)
+            plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize)
             
         if inplace: 
             G2UVcor = self
@@ -716,6 +721,13 @@ Guider2UV object:
         G2UVcor.FOV_center_guider_coord = newFOVcenter
         
         G2UVcor.FieldP.gamma *= gamma
+
+        print(f'''After updating:
+    mask_rotation: {G2UVcor.mask_rotation}
+    FOV center in guider: {G2UVcor.FOV_center_guider_pix[0]} x {G2UVcor.FOV_center_guider_pix[1]} pix = {G2UVcor.FOV_center_guider_coord.lon.to(u.arcsec)} x {G2UVcor.FOV_center_guider_coord.lat.to(u.arcsec)} arcsec
+    mask_magnification correction: {G2UVcor.FieldP.gamma}  
+    '''
+        )
         
         return G2UVcor, residuals
 
