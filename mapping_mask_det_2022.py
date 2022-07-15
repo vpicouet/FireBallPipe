@@ -60,6 +60,7 @@ def save_region_file(t,field,mappings_linw):
 
 
 def fit_magnfication(mask_table, field):
+    print(mask_table, field)
     xmm = mask_table["ymm"]
     ymm = -mask_table["xmm"]
     xpix = mask_table["X_IMAGE"]*0.013
@@ -83,7 +84,7 @@ def fit_magnfication(mask_table, field):
         return get_mean_distance(xpix,ypix, xpred,ypred)
     
     from scipy.optimize import leastsq, minimize
-    a = minimize(err_func, x0=(0,0,0,1,1), args=(xmm,ymm,xpix,ypix))
+    a = minimize(err_func, x0=(10,10,0,0.9,1), args=(xmm,ymm,xpix,ypix))
     print(a)
     
     ##%%
@@ -127,6 +128,9 @@ def create_mapping(field):
     # fn = "/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F1/F1_2022_5_-105.fits"
     try:
         t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106.csv"%(field,field))
+        t =Table.read("/Volumes/ExtremePro/LAM/FIREBALL/2022/DetectorData/220708/xycalib/diffuse/85_%s_-60.csv"%(field))
+        t=Table.read("/Volumes/GoogleDrive-105248178238021002216/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2022/Detector_Data/220712/xycalib/stack_nanmean_1-5.csv")
+        t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F3_60.csv")
         t = t[t["amp_x"]>5]
     except FileNotFoundError:
         t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106_cat.fits"%(field,field))
@@ -175,19 +179,20 @@ def create_mapping(field):
     # map  subt['xmask'], subt['ymask'], subt['X_IMAGE'], subt['Y_IMAGE']
     # mask_table["X_IMAGE"] = mask_table["x"]      
     # mask_table["Y_IMAGE"] = mask_table["y"]      
-    mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #& (mask_table["wavelength"]==0.20619)
-    
+    mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #&(mask_table["Y_IMAGE"]>540) #& (mask_table["wavelength"]==0.20619)
+    print(mask_table[mask_mapping])
+    # plt.plot(mask_table[mask_mapping]["Y_IMAGE"],mask_table[mask_mapping]["Y_IMAGE"])
     mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,3,3])
     mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2022/mapping-mask-det-w-2022-5-%s.pkl'%(field))
     # plt_mapping(mask_table, mappings_linw,field)
     save_region_file(mask_table,field,mappings_linw)
-    mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) & (mask_table["wavelength"]==0.20619)
+    mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) & (mask_table["wavelength"]==0.21382)#0.20619)
     fit_magnfication(mask_table[mask_mapping],field)
     return
 
 # curve_fit(guider_to_detector, np.array([mask_table[mask_mapping]["xmm"],mask_table[mask_mapping]["ymm"]]),np.array([mask_table[mask_mapping]["X_IMAGE"],mask_table[mask_mapping]["Y_IMAGE"]]),p0=None)
 
-for field in ["F1"]:#,"F2","F3","F4","QSO"]:
+for field in ["F3"]:#,"F2","F3","F4","QSO"]:
     create_mapping(field)
     # sys.exit()
 #%%
