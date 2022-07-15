@@ -82,7 +82,7 @@ ScienceMaskProjector object:
         except AttributeError:
             # self._radial_mag_inv_polynomial np.roots([c,b,a,-r])[-1]/r # last root seems the right one....
             self._radial_mag_inv_polynomial = (2.366233E-2, -3.610313e-9, 3.566165e-7) # 2018 masks
-            return self._radial_mag_polynomial
+            return self._radial_mag_inv_polynomial
     
     @radial_mag_polynomial.setter
     def radial_mag_polynomial(self, coeffs):
@@ -90,7 +90,7 @@ ScienceMaskProjector object:
     
     @radial_mag_inv_polynomial.setter
     def radial_mag_inv_polynomial(self, coeffs):
-        self.radial_mag_inv_polynomial = coeffs
+        self._radial_mag_inv_polynomial = coeffs
 
     # THIS SHOULD BE UPDATED for 2022 flight... 
     #  at least replace with a constant near the expected magnification.
