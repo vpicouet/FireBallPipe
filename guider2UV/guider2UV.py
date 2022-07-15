@@ -556,8 +556,9 @@ Guider2UV object:
             slit_pos = np.array([st[st['Internal-count']==s][x][0], st[st['Internal-count']==s][y][0]])
             print("slit position in mm on mask:", slit_pos)
             slit_coords.append(self.SienceMask2guider(slit_pos, angle=True))
+        
     
-        moves, flags = compute_autocoll_moves(slit_coords, hystcomp)
+        moves, flags = compute_autocoll_moves(slit_coords, hystcomp, CEg = CEg, Elg = Elg)
         slit_coords = slit_coords + slit_coords[::-1] # revert 
         
         return moves, flags, slit_coords
@@ -576,7 +577,7 @@ Guider2UV object:
             # print("star position Ra/Dec: ", star_pos_radec)
             star_coords.append(self.SienceMask2guider(star_pos_radec, world=True, angle=True))
     
-        moves,flags = compute_autocoll_moves(star_coords, hystcomp)
+        moves,flags = compute_autocoll_moves(star_coords, hystcomp, CEg =CEg, Elg = Elg)
         
         return moves, flags, star_coords
 
