@@ -67,6 +67,31 @@ ScienceMaskProjector object:
 '''.format(self.localframe, self.gamma)
         return str_
 
+    @property
+    def radial_mag_polynomial(self):
+        try:
+            return self._radial_mag_polynomial
+        except AttributeError:
+            self._radial_mag_polynomial = (42.26134, -3.154411e-3, -1.117322) # 2018 masks
+            return self._radial_mag_polynomial
+            
+    @property
+    def radial_mag_inv_polynomial(self):
+        try:
+            return self._radial_mag_inv_polynomial
+        except AttributeError:
+            # self._radial_mag_inv_polynomial np.roots([c,b,a,-r])[-1]/r # last root seems the right one....
+            self._radial_mag_inv_polynomial = (2.366233E-2, -3.610313e-9, 3.566165e-7) # 2018 masks
+            return self._radial_mag_polynomial
+    
+    @radial_mag_polynomial.setter
+    def radial_mag_polynomial(self, coeffs):
+        self._radial_mag_polynomial = coeffs
+    
+    @radial_mag_inv_polynomial.setter
+    def radial_mag_inv_polynomial(self, coeffs):
+        self.radial_mag_inv_polynomial = coeffs
+
     # THIS SHOULD BE UPDATED for 2022 flight... 
     #  at least replace with a constant near the expected magnification.
     # (the model update method in guider2UV is only able to add a small 1+delta factor to this)/
@@ -74,15 +99,10 @@ ScienceMaskProjector object:
     # when instanciating the class (eg when instanciating a Guider2UV object).
     def radial_magnification(self, r, reverse=False):
         if not reverse:
-            a =42.26134
-            b=-3.154411e-3
-            c=-1.117322
+            a, b, c = self.radial_mag_polynomial
             return a + b * r + c * np.square(r) # mm/deg
         else:
-            a=2.366233E-2, 
-            b=-3.610313e-9
-            c=3.566165e-7
-            #return np.roots([c,b,a,-r])[-1]/r # last root seems the right one....
+            a, b, c = self.radial_mag_inv_polynomial
             return c*np.square(r) + b*r + a # deg/mm
         
         
