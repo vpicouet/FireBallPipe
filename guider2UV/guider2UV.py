@@ -78,9 +78,13 @@ def fit_model(coord, coord_obs, gamma=True, ytilt=False, weight=None):
             row_x = np.hstack((coord_arr*[1.,-1], np.ones((n,1)), np.zeros((n,1)) )) # xn - x =  x dgamma - y theta + dx  
             row_y = np.hstack((coord_arr[:,::-1], np.zeros((n,1)), np.ones((n,1)) )) # yn - y =  y dgamma + x theta      + dy 
             mat = np.vstack((row_x, row_y))
+            print("row_x, row_y = ", row_x, row_y)
+            print("mat = ", mat)
             if weight is not None:
                 mat = np.diag(np.sqrt(weight)).dot(mat)
+
             matinv =  np.linalg.pinv(mat)
+            print("matinv = ",matinv)
             sol = matinv.dot(data)
             gamma = 1 + sol[0]
             theta_rad = sol[1]
@@ -175,7 +179,7 @@ def fit_model(coord, coord_obs, gamma=True, ytilt=False, weight=None):
     return fullsol, residuals
 
      
-def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=(12,6)):
+def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8)):
     
     n = len(coord)
     
