@@ -78,13 +78,13 @@ def fit_model(coord, coord_obs, gamma=True, ytilt=False, weight=None):
             row_x = np.hstack((coord_arr*[1.,-1], np.ones((n,1)), np.zeros((n,1)) )) # xn - x =  x dgamma - y theta + dx  
             row_y = np.hstack((coord_arr[:,::-1], np.zeros((n,1)), np.ones((n,1)) )) # yn - y =  y dgamma + x theta      + dy 
             mat = np.vstack((row_x, row_y))
-            print("row_x, row_y = ", row_x, row_y)
-            print("mat = ", mat)
+            # print("row_x, row_y = ", row_x, row_y)
+            # print("mat = ", mat)
             if weight is not None:
                 mat = np.diag(np.sqrt(weight)).dot(mat)
 
             matinv =  np.linalg.pinv(mat)
-            print("matinv = ",matinv)
+            # print("matinv = ",matinv)
             sol = matinv.dot(data)
             gamma = 1 + sol[0]
             theta_rad = sol[1]
@@ -477,9 +477,7 @@ Guider2UV object:
         UVstar_coord = register_UV_star_simple(this_pattern_coord, Stars_coord,
                                                Stars_id, UVStar_id)
         
-        return coordinates.SkyCoord(UVstar_coord[0]*u.deg, 
-                                    UVstar_coord[1]*u.deg, 
-                                    frame=self.GuiderP.localframe)
+        return coordinates.SkyCoord(UVstar_coord[0]*u.deg, UVstar_coord[1]*u.deg, frame=self.GuiderP.localframe)
     
     
     def FieldLocal_to_guider(self, Fcoord_local, angle=False):
