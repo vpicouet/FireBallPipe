@@ -217,7 +217,7 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8),
         for i in range(n):
             plt.text(coord_obs_arr[i,0]*3600, coord_obs_arr[i,1]*3600, labels[i], color='k')
     qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
-    plt.quiverkey(qv, .8,.9, quiverscale, '{quiverscale} arcsec', color='k')
+    plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
     plt.ylim(plt.ylim()[::-1])
     plt.grid(True)
     plt.xlabel('EL arcsec')
@@ -235,12 +235,12 @@ def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8),
         legend += "deltax: {:.4f} arcsec\n".format(deltax*3600)
         legend += "deltay: {:.4f} arcsec\n".format(-deltay*3600)
     residual_rms = np.sqrt(np.square(residuals).mean(axis=0))*3600
-    legend += "mean residual in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
+    legend += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
     plt.text(-10,7, legend)
 
     plt.show()
 
-def plot_sky_comparison(slit_coords, source_coords, labels=None, figsize=(8,6), quiverscale=15):
+def plot_sky_comparison(slit_coords, source_coords, labels=None, figsize=(8,6), scale=1/1000., quiverscale=0.5):
         
     coord_arr = coord_list_to_array(slit_coords)
     source_coord_arr = coord_list_to_array(source_coords)
@@ -254,7 +254,8 @@ def plot_sky_comparison(slit_coords, source_coords, labels=None, figsize=(8,6), 
     if labels is not None:
         for i in range(len(coord_arr)):
             plt.text(coord_arr[i,0]*3600, coord_arr[i,1]*3600, labels[i], color='k')
-    qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
+    qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600, 
+                    scale_units='xy', scale=scale)
     plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
     #plt.ylim(plt.ylim()[::-1])
     plt.grid(True)
@@ -570,7 +571,7 @@ Guider2UV object:
     
         return local_coords
     
-    def compare_mask_2_sky(self, slits, slit_table, labels=None, quiverscale=15):
+    def compare_mask_2_sky(self, slits, slit_table, labels=None, scale=1/1000., quiverscale=15):
 
         slits = np.array(slits)
         slit_coords = []
@@ -589,12 +590,12 @@ Guider2UV object:
             ra, dec = [st[st['Internal-count']==s]['ra'][0], st[st['Internal-count']==s]['dec'][0]]
             source_coords.append(self.FieldP.world2local(coordinates.SkyCoord(ra*u.deg, dec*u.deg)))
 
-        plot_sky_comparison(slit_coords, source_coords, labels, quiverscale=quiverscale)
+        plot_sky_comparison(slit_coords, source_coords, labels, scale=scale, quiverscale=quiverscale)
 
         return slit_coords, source_coords
 
 
-    def compare_obs_2_sky(self, coord_obs, slits, slit_table, labels=None, quiverscale=15):
+    def compare_obs_2_sky(self, coord_obs, slits, slit_table, labels=None, scale=1/1000., quiverscale=15):
 
         slits = np.array(slits)
         source_coords = []
