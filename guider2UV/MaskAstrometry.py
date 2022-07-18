@@ -72,7 +72,7 @@ ScienceMaskProjector object:
         try:
             return self._radial_mag_polynomial
         except AttributeError:
-            self._radial_mag_polynomial = (42.26134, -3.154411e-3, -1.117322) # 2018 masks
+            self._radial_mag_polynomial = (42.26134, -3.154411e-3, -1.117322) # 2018 masks, mm/deg
             return self._radial_mag_polynomial
             
     @property
@@ -81,7 +81,7 @@ ScienceMaskProjector object:
             return self._radial_mag_inv_polynomial
         except AttributeError:
             # self._radial_mag_inv_polynomial np.roots([c,b,a,-r])[-1]/r # last root seems the right one....
-            self._radial_mag_inv_polynomial = (2.366233E-2, -3.610313e-9, 3.566165e-7) # 2018 masks
+            self._radial_mag_inv_polynomial = (2.366233E-2, -3.610313e-9, 3.566165e-7) # 2018 masks, deg/mm
             return self._radial_mag_inv_polynomial
     
     @radial_mag_polynomial.setter
