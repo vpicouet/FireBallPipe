@@ -488,7 +488,7 @@ Guider2UV object:
         '''
         
         # rotate
-        rot = self.mask_rotation .to('rad').value  
+        rot = self.mask_rotation.to('rad').value  
         mrot = np.array([[1, -rot],
                          [rot, 1]])
         lon = np.array(Fcoord_local.lon.deg)
@@ -520,7 +520,7 @@ Guider2UV object:
         F_local_lat = Gcoord_local.lat - self.FOV_center_guider_coord.lat
         
         # unrotate
-        rot = self.mask_rotation .to('rad').value  
+        rot = self.mask_rotation.to('rad').value  
         mrot = np.array([[1, rot],
                          [-rot, 1]])
         F_local = mrot.dot(np.array([F_local_lon.deg, F_local_lat.deg]))
