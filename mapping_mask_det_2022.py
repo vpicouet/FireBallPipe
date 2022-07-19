@@ -186,7 +186,7 @@ def create_mapping(field, t=None):
     print(mask_table["Y_IMAGE"])
     print(mask_table[mask_mapping])
     # plt.plot(mask_table[mask_mapping]["Y_IMAGE"],mask_table[mask_mapping]["Y_IMAGE"])
-    mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,3,3])
+    mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,2,2])
     mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2022/mapping-mask-det-w-2022-5-%s.pkl'%(field))
     plt_mapping(mask_table, mappings_linw,field)
     save_region_file(mask_table,field,mappings_linw)
@@ -198,5 +198,5 @@ def create_mapping(field, t=None):
 
 
 create_mapping("F2",t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F2_19.csv") )
-create_mapping("F3",t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F3_60.csv") )
-create_mapping("QSO",t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/QSO_-100.5.csv") )
+# create_mapping("F3",t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F3_60.csv") )
+create_mapping("QSO",t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/QSO_-100.5_b.csv") )
