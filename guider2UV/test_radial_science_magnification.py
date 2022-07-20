@@ -14,10 +14,10 @@ from astropy import units as u
 from astropy.table import Table
 
 #from guider2UV import Guider2UV
-from MaskAstrometry import LocalScienceMaskProjector
+from guider2UV.MaskAstrometry import LocalScienceMaskProjector
 ### check science mask magnif/dist versus JG calc
 
-
+from matplotlib import pyplot as plt
 
 target_file = "/home/dvibert/ownCloud/FIREBALL/Target_selection_meeting_NY_20170405/targets_F1.txt"
 target_file = '/Users/Vincent/Github/DS9functions/DS9FireBall/Targets/targets_F1.txt'
@@ -37,7 +37,10 @@ r = np.linspace(0, 1/6., 100) # 0 -10arcmin
 gr = FieldP.radial_magnification(r)
 
 plt.figure()
-plt.plot(r, gr)
+plt.plot(r*60, gr)
+plt.xlabel('angular radius (in arcmin)')
+plt.ylabel('magnification (mm/deg)')
+plt.show()
 
 def correctFORplatescale(radius):
     #X=MX
