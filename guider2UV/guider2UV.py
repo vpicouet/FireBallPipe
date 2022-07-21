@@ -5,7 +5,7 @@ Created on Mon Sep  4 14:20:31 2017
 
 @author: dvibert
 """
-from __future__ import division, print_function
+import copy
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -15,10 +15,7 @@ from astropy import units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
 #from scipy.optimize import curve_fit
 
-try:
-   import cPickle as pickle # for python 2 only CPickle is faster
-except:
-   import pickle
+import pickle
 
 from .MaskAstrometry import LocalGuiderMaskProjector, LocalScienceMaskProjector
 
@@ -428,15 +425,8 @@ Guider2UV object:
 
         return str_
 
-        
     def copy(self):
-        return Guider2UV(guider_wcs=self.GuiderP.w.copy(), 
-                     Field_center=self.FieldP.center.copy(), 
-                     Field_rotation=self.FieldP.rotation.copy(),
-                     mask_rotation=self.mask_rotation.copy(),
-                     Field_gamma = self.FieldP.gamma,
-                     FOVcenter_guider_coord = self.FOV_center_guider_coord.copy())
-
+        return copy.deepcopy(self)
         
     def set_FOV_center(self, FourStarsGuider_pos, StarsGuider_pos, Slit_pos, Stars_id=[0,1,2], 
                 UVStar_id=3, world=False):
