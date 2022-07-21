@@ -5,8 +5,7 @@ Created on Wed Sep  6 10:20:33 2017
 
 @author: dvibert
 """
-from __future__ import division, print_function
-
+import copy 
 import numpy as np
 from astropy.io import fits
 from astropy import wcs, coordinates
@@ -26,7 +25,10 @@ GuiderMaskProjector object:
     wcs: {}
 '''.format(self.localframe, self.w)
         return str_
-        
+    
+    def copy(self):
+        return copy.deepcopy(self)
+
     def _build_local_frame(self):
         center = self.w.wcs.crval*u.deg
         center = coordinates.SkyCoord(center[0], center[1])
@@ -51,6 +53,7 @@ GuiderMaskProjector object:
 
 
 
+
 class LocalScienceMaskProjector(object):
     
     def __init__(self, center, rotation=0*u.deg, gamma=1.):
@@ -66,6 +69,9 @@ ScienceMaskProjector object:
     gamma: {}
 '''.format(self.localframe, self.gamma)
         return str_
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @property
     def radial_mag_polynomial(self):
