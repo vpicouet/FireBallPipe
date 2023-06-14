@@ -27,17 +27,13 @@ def map_mask_detector(table, deg=[5, 2], bywave=True):
 
     # list of wavelength
     subt = table[table['wavelength'] > 0]
-    
     wset = np.unique(subt['wavelength'])
-    
     wset.sort()
     
     if bywave:
         mapping = Mapping(wavelength=wset)
     else:
         mapping = Mapping()
-    
-    
     mapping.set(subt['wavelength'], subt['xmask'], subt['ymask'], subt['X_IMAGE'], subt['Y_IMAGE'] , deg)
         
     # compute residuals
