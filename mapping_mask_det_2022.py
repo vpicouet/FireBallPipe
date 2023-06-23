@@ -8,7 +8,7 @@ Created on Wed Sep 19 21:16:07 2018
 
 import matplotlib.pyplot as plt
 from astropy.table import Table
-from Calibration.mapping_mask_det import map_mask_detector, recompute_mask_pos, create_DS9regions
+from Calibration.mapping_mask_det import map_mask_detector, recompute_mask_pos#, create_DS9regions
 from Calibration.focustest import Focus
 import numpy as np
 import sys 
@@ -51,7 +51,7 @@ def save_region_file(t,field,mappings_linw):
         [list(y),list(y2),list(y3)],
         radius=[15, 40] ,
         save=True,
-        savename="/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2023/%s.reg"%(field),
+        savename="/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Mappings/2023/%s.reg"%(field),
         form=["box","box","box"],
         color=["red","yellow","blue"],
         ID=[list(t["Internal-count"]),list(t["Internal-count"]),list(t["Internal-count"])],
@@ -112,7 +112,7 @@ def fit_magnfication(xmm,ymm,xpix,ypix,id_, field="",x0=(30,15,0,0.89,1)):
     
     ##%%
     fig, (ax0,ax1, ax2) = plt.subplots(1,3,figsize=(12,5))
-    ax0.scatter(xmm,ymm,label="x0,x0=%0.1f, %0.1f \nθ=%0.2f \nmx,my=%0.2f,%0.2f"%(*a["x"],))
+    ax0.scatter(xmm,ymm,label="x0,x0=%0.1f, %0.1f \nθ=%0.2f \nmx,my=%0.3f,%0.3f"%(*a["x"],))
     ax1.scatter(xpix,ypix,label="slit center")
     for i, l in enumerate(id_):
         ax0.text(xmm[i],ymm[i],l)#["Internal-count"])
@@ -139,8 +139,9 @@ def fit_magnfication(xmm,ymm,xpix,ypix,id_, field="",x0=(30,15,0,0.89,1)):
     plt.show()
     return  a["x"]
 
-def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y_IMAGE*0.013", id_="Internal_count"):
+def create_mapping(field, file=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y_IMAGE*0.013", id_="Internal_count"):
     lambda_lya = 0.121567
+    t=Table.read(file)
     # field="grid"
     # field="F4"
     ################ F1 +119
@@ -151,21 +152,18 @@ def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y
     # imagename = 'image-000275-000284-Zinc-with_dark119-stack.fits'
     # t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/XYCalibration/Detector_Mask_mappings/image-000275-000284-Zinc-with_dark119-stack_table.csv")
     # fn = "/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F1/F1_2022_5_-105.fits"
-    if t is None:
-        try:
-            # t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106.csv"%(field,field))
-            # t =Table.read("/Volumes/ExtremePro/LAM/FIREBALL/2022/DetectorData/220708/xycalib/diffuse/85_%s_-60.csv"%(field))
-            # t=Table.read("/Volumes/GoogleDrive-105248178238021002216/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2022/Detector_Data/220712/xycalib/stack_nanmean_1-5.csv")
-            t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F3_60.csv")
-            # t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F4_-20.csv")
-            t = t[t["amp_x"]>5]
-        except FileNotFoundError:
-            t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106_cat.fits"%(field,field))
-            t= t[t["FLUX_MAX"]>200]
+
+    # if t is None:
+    #     try:
+    #         t=Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/F3_60.csv")
+    #         t = t[t["amp_x"]>5]
+    #     except FileNotFoundError:
+    #         t =Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/TestsFTS2018-Flight/E2E-AIT-Flight/all_diffuse_illumination/FocusEvolution/%s/%s_2022_6_-106_cat.fits"%(field,field))
+    #         t= t[t["FLUX_MAX"]>200]
              
     # mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Slits/%s_new.csv"%(field))
     
-    mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Targets/2022/targets_%s.csv"%(field),format="ascii")
+    mask_table = Table.read("/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Targets/2022/targets_%s.csv"%(field),format="ascii")
     try:
         mask_table["xmask"],mask_table["ymask"] = mask_table["x_mask_corrected"],mask_table["_mask_corrected"]
     except KeyError:
@@ -183,7 +181,7 @@ def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y
     cols = [ 'line', 'x', 'y', 'amp_x', 'lx', 'x0', 'fwhm_x', 'off_x', 'amp_y', 'ly', 'y0', 'fwhm_y', 'off_y', 'smearing', 'fwhm_x_unsmear', 'lx_unsmear', 'x0_unsmear', 'amp_x_unsmear',"X_IMAGE","Y_IMAGE","X_IMAGE_unsmear"]#, 'l203', 'l214', 'l206']
     cols += [c for c in  t.colnames if "_IMAGE_" in c]
     # cols = t.colnames
-    print(np.ptp(mask_table["Y_IMAGE"][np.isfinite(mask_table["Y_IMAGE"])]))
+    # print(np.ptp(mask_table["Y_IMAGE"][np.isfinite(mask_table["Y_IMAGE"])]))
 
     for col in cols:
         mask_table[col] = np.nan
@@ -196,13 +194,15 @@ def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y
     # mask_table["X_IMAGE"] = np.nan
     # mask_table["Y_IMAGE"] = np.nan
     # mask = (mask_table==0.20255) | (mask_table==0.20619) | (mask_table==0.20619)
+    print(t["name"])
+    t["name"] = t["name"].astype(str)
     for i,line in enumerate(mask_table):
-        mask = (t["name"]==line["Internal-count"]) & (t["wavelength"]==line["wavelength"])
+        mask = (t["name"]==str(line["Internal-count"])) & (t["wavelength"]==line["wavelength"])
 
         n=len(t[mask])
-        # print(n)
+        print(n, line["Internal-count"])
         if (n>1) :#| ((field=="F2")&(line["Internal-count"]=="18")):
-            print(t[(t["name"]==line["Internal-count"])])
+            print(t[(str(t["name"])==str(line["Internal-count"]))])
             # sys.exit()
         elif n==1:
             for col in cols:
@@ -211,14 +211,15 @@ def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y
     # map  subt['xmask'], subt['ymask'], subt['X_IMAGE'], subt['Y_IMAGE']
     # mask_table["X_IMAGE"] = mask_table["x"]      
     # mask_table["Y_IMAGE"] = mask_table["y"]   
-    print(np.ptp(mask_table["Y_IMAGE"][np.isfinite(mask_table["Y_IMAGE"])]))
+    # print(np.ptp(mask_table["Y_IMAGE"][np.isfinite(mask_table["Y_IMAGE"])]))
     mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #&(mask_table["Y_IMAGE"]>540) #& (mask_table["wavelength"]==0.20619)
-    print(mask_table["Y_IMAGE"])
-    print(mask_table[mask_mapping])
+    # print(mask_table["Y_IMAGE"])
+    # print(mask_table[mask_mapping])
     # plt.plot(mask_table[mask_mapping]["Y_IMAGE"],mask_table[mask_mapping]["Y_IMAGE"])
+    print("Creating mapping: ")#, mask_table[mask_mapping])
     mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,2,2])
-    print("saving file")
-    mappings_linw.save('/Users/Vincent/Github/FireBallPipe/Calibration/Mappings/2023/mask_to_det_mapping/mapping-mask-det-w-2023-0-%s.pkl'%(field))
+    print("saving file: ", )
+    mappings_linw.save('/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Mappings/2023/mask_to_det_mapping/mapping-mask-det-w-2023-0-%s.pkl'%(field))
     plt_mapping(mask_table, mappings_linw,field)
     save_region_file(mask_table,field,mappings_linw)
     mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #& (mask_table["wavelength"]==0.21382)#0.20619)
@@ -234,7 +235,20 @@ def create_mapping(field, t=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2="Y
     mag = fit_magnfication(pd.eval(x1),pd.eval(y1),pd.eval(x2),pd.eval(y2),pd.eval(id_),field)
     # mag = fit_magnfication(mask_table[mask_mapping],field)
     # return mag#Table([os.path.basename(os.path.dirname(f)),os.path.basename(f)]+list(mag),names=["iteration","mask","x0","y0","theta","mx","my"])
-    return [os.path.basename(os.path.dirname(f)),os.path.basename(f)]+list(mag)#   ,names=["iteration","mask","x0","y0","theta","mx","my"])
+    return [os.path.basename(os.path.dirname(file)),os.path.basename(file)]+list(mag)#   ,names=["iteration","mask","x0","y0","theta","mx","my"])
+
+
+
+
+mag= create_mapping("QSO",file="/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/DOBC_data/230620/xy/image000006.csv")#Table.read(f) )
+mag= create_mapping("F3",file="/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/DOBC_data/230620/xy/image000008.csv")#Table.read(f) )
+
+
+sys.exit()
+mag= create_mapping(os.path.basename(f).split("_")[0],file=f)#Table.read(f) )
+
+
+sys.exit()
 
 mag= create_mapping(os.path.basename(f).split("_")[0],t=Table.read(f) )
 #%%
@@ -258,14 +272,15 @@ mags = Table(names=["iteration","mask","x0","y0","theta","mx","my"],dtype=["S20"
 # for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/11_cold_230407_0.55/[FQ]*.csv"):
 # for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2022/**/[Q]*_6_*.csv"):
 # for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2022/*_cold_*/[FQ]*.csv"):
-# for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/202?/16_cold_*/F4*.csv"):
+for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/202?/16_cold_*/[Q]*.csv"):
     print(f)
     # for f in glob.glob("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/*_cold_*/F2*.csv"):
-    try:
-        mag= create_mapping(os.path.basename(f).split("_")[0],t=Table.read(f) )
-        mags.add_row(mag)
-    except ValueError as e:
-        print("Do not work! ", e)
+    mag= create_mapping(os.path.basename(f).split("_")[0].split(".")[0],file=f)#Table.read(f) )
+    # try:
+    #     mag= create_mapping(os.path.basename(f).split("_")[0],file=f)#Table.read(f) )
+    #     mags.add_row(mag)
+    # except ValueError as e:
+    #     print("Do not work! ", e)
 mags["iter"] =  [ int(re.findall(r"\d+", m)[0]) for m in mags["iteration"]]
 mags["mask"] =  [ m.split("_")[0] for m in mags["mask"]]
 # mags.write("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/magnifications.csv",overwrite=True)
@@ -286,7 +301,7 @@ for n in [5,10,13,37]:
         # xmask, ymask = detector_to_guider((a["X_IMAGE"],a["Y_IMAGE"]),mag["x0"],mag["y0"],mag["theta"],mag["mx"],mag["my"])
         # plt.plot(xmask, ymask,".")
         try:
-            plt.plot(a["X_IMAGE"]-a["X_IMAGE"][a["name"]==str(n)],a["Y_IMAGE"]-a["Y_IMAGE"][a["name"]==str(n)],".",label=)
+            plt.plot(a["X_IMAGE"]-a["X_IMAGE"][a["name"]==str(n)],a["Y_IMAGE"]-a["Y_IMAGE"][a["name"]==str(n)],".",label=1)
         except ValueError:
             pass
         # plt.plot(a["X_IMAGE"]+mag["y0"],a["Y_IMAGE"]+mag["x0"],".")
@@ -360,16 +375,17 @@ plt.title("Sky to Mask magnification evolution with Mask/iteration")
 #%%
 
 
-EL = np.array([0.32922	,0.32922	,0.32922	,0.44034	,0.44034])
-CE = np.array([-0.25557,-0.13057	,0.00832	,0.00832	,-0.25557])
+EL = np.array([0.32922	,0.32922	,0.32922	,0.44034	,0.44034])*2*0.9969
+CE = np.array([-0.25557,-0.13057	,0.00832	,0.00832	,-0.25557])*2*1.0180
 X =  np.array([1304.6	,1307.4	    ,1328.8	    ,1965.7	    ,1940.7])
 Y =  np.array([1868.6	,1034.5	    ,107.7	    ,117.5	    ,1882.7])
 
 
-from scipy.optimize import leastsq, minimize
-a = minimize(err_func, x0=(30,15,0,0.89,1), args=(EL,CE,X,Y))
+# from scipy.optimize import leastsq, minimize
+# a = minimize(err_func, x0=(30,15,0,0.89,1), args=(EL,CE,X,Y))
 
-fit_magnfication(3600*EL,3600*CE,X,-Y,Y, field="",x0=(0,0,0,1,1))
+# fit_magnfication(3600*EL,3600*CE,X,-Y,Y, field="",x0=(0,0,0,1,1))
+fit_magnfication(X,-Y,3600*EL,3600*CE,Y, field="",x0=(0,0,0,1,1))
     
 #%%
 # Now  I need to derotate the mask to det.
@@ -387,34 +403,37 @@ t=np.deg2rad(-0.13)#-0.13
 rac,decc = 36.9049,	0.65245
 # mx,my = 1.26*0.877, 1.08*1.01
 # mx,my = 1/0.877, 1/1.01
-# mx, my = 1.26, 1.08# pixel at detector become sky to detector
+mx, my = 1.26, 1.08# pixel at detector become sky to detector
+
+Elg = 0.9969 # 2023 #1.0090 2022 # Elg = 1.00379 # 2018
+CEg = 1.018  # 2023 #1.0187 2022 # CEg = 1.02928 # 2018
 
 # mx,my =  1.105/0.877,1.1091/1.01
 # mx,my =  1.105/1.01,1.1091/0.877
 # we want sky to mask so we want to multiply by a mask to det
-f = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Targets/2022/targets_F4.csv")
+f = Table.read("/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Targets/2022/targets_F4.csv")
 p = Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/16_cold_230612/F4_image000008.csv")
 rotmat = np.array([[np.cos(t), -np.sin(t)], 
                    [np.sin(t),  np.cos(t)]])
 p["X_IMAGE_rot"],p["Y_IMAGE_rot"] = (rotmat @ np.lib.recfunctions.structured_to_unstructured(p["X_IMAGE","Y_IMAGE"].as_array()).T)#.T
-p.write("/Users/Vincent/Github/FireBallPipe/Calibration/Targets/2022/targets_F4.csv",overwrite=True)
+p.write("/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/16_cold_230612/F4_image000008.csv",overwrite=True)
 fig, (ax0, ax1) = plt.subplots(1,2,sharex=True,sharey=True)
 # ax0.plot( (f['RA'] - np.mean(f['RA'])) * np.cos((f["DEC"]-np.mean(f["DEC"]))*np.pi/180),f["DEC"]-np.mean(f["DEC"]),".")
 # ax1.plot(-p["Y_IMAGE"],p["X_IMAGE"],".")
 
 ax0.plot( f["DEC"]-decc,(f['RA'] - rac) * np.cos((f["DEC"]-decc)*np.pi/180),".")
 ax1.plot((p["X_IMAGE_rot"]-p["X_IMAGE_rot"].mean())*mx/3600,-(p["Y_IMAGE_rot"]-p["Y_IMAGE_rot"].mean())*mx/3600,"k.")
-ax0.plot((p["X_IMAGE_rot"]-p["X_IMAGE_rot"].mean())*mx/3600,-(p["Y_IMAGE_rot"]-p["Y_IMAGE_rot"].mean())*mx/3600,"k.")
+# ax0.plot((p["X_IMAGE_rot"]-p["X_IMAGE_rot"].mean())*mx/3600,-(p["Y_IMAGE_rot"]-p["Y_IMAGE_rot"].mean())*mx/3600,"k.")
 ax0.grid()
 ax1.grid()
 ax0.set_ylim((-0.3,0.2))
     
 
-f="/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/16_cold_230612/F4_image000008.csv"
-mag= create_mapping(os.path.basename(f).split("_")[0],t=Table.read(f),x1 = "RA",y1 = "DEC",x2="X_IMAGE_rot*%s/3600"%(mx),y2="Y_IMAGE_rot*%s/3600"%(my), id_="Internal_count" )
+# f="/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/16_cold_230612/F4_image000008.csv"
+# mag= create_mapping(os.path.basename(f).split("_")[0],file=f,x1 = "RA",y1 = "DEC",x2="X_IMAGE_rot*%s/3600"%(mx),y2="Y_IMAGE_rot*%s/3600"%(my), id_="Internal_count" )
 
 
-fit_magnfication( f["DEC"]-decc,(f['RA'] - rac) * np.cos((f["DEC"]-decc)*np.pi/180),3600*EL*2,3600*CE*2,Y, field="",x0=(0,0,0,1,1))
+# fit_magnfication( f["DEC"]-decc,(f['RA'] - rac) * np.cos((f["DEC"]-decc)*np.pi/180),3600*EL*2,3600*CE*2,Y, field="",x0=(0,0,0,1,1))
 
 
     
