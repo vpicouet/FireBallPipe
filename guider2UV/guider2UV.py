@@ -58,7 +58,7 @@ def coord_list_to_array(coord):
     return coord_arr
 
    
-def fit_model(coord, coord_obs, gamma=True, ytilt=False, weight=None):
+def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
     
     coord_arr = coord_list_to_array(coord)
     coord_obs_arr = coord_list_to_array(coord_obs)
@@ -748,7 +748,7 @@ Guider2UV object:
                 pass
 
 
-    def  update_model(self, coord, coord_obs, gamma=True, ytilt=False, weight=None,
+    def  update_model(self, coord, coord_obs, gamma=False, ytilt=False, weight=None,
                       inplace=False, plot=False, labels=None, figsize=None, quiverscale=10):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
