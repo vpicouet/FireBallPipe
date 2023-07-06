@@ -621,8 +621,9 @@ Guider2UV object:
         
     
         moves, flags = compute_autocoll_moves(slit_coords, hystcomp, CEg = CEg, Elg = Elg)
+        # if hystcomp:
         slit_coords = slit_coords + slit_coords[::-1] # revert 
-        
+
         return moves, flags, slit_coords
     
         
