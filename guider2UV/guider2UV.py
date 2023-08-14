@@ -175,67 +175,7 @@ def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
 
     return fullsol, residuals
 
-     
-def plot_fit(coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8), quiverscale=10):
-    
-    n = len(coord)
-    
-    coord_arr = coord_list_to_array(coord)
-    coord_obs_arr = coord_list_to_array(coord_obs)
-        
-    delta = coord_obs_arr - coord_arr
-    
-    plt.figure(figsize=figsize)
-    plt.subplot(121)
-    plt.axis('equal')
-    plt.title("model versus mesure")
-    plt.plot(coord_arr[:,0]*3600, coord_arr[:,1]*3600,'or')
-    if labels is not None:
-        for i in range(n):
-            plt.text(coord_arr[i,0]*3600, coord_arr[i,1]*3600, labels[i], color='k')
-    qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
-    plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
-    plt.ylim(plt.ylim()[::-1])
-    plt.grid(True)
-    plt.xlabel('EL arcsec')
-    plt.ylabel(' - CE arcsec')
-    delta_mean = delta.mean(axis=0)
-    delta_rms = np.sqrt(np.square(delta - delta_mean).mean(axis=0))*3600
-    delta_mean *= 3600
-    legend =  "error mean in EL, CE {:.1f}, {:.1f} arcsec\n".format(*list(delta_mean))
-    legend += "error rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(delta_rms))
-    plt.text(-10,7, legend)
-    
-    plt.subplot(122)
-    plt.axis('equal')
-    plt.title("residual after model fit")
-    plt.plot(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600,'or')
-    if labels is not None:
-        for i in range(n):
-            plt.text(coord_obs_arr[i,0]*3600, coord_obs_arr[i,1]*3600, labels[i], color='k')
-    qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
-    plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
-    plt.ylim(plt.ylim()[::-1])
-    plt.grid(True)
-    plt.xlabel('EL arcsec')
-    plt.ylabel(' - CE arcsec')
-    
-    legend = ''
-    if sol is not None:
-        dgamma, theta_rad, thetay_rad, deltax, deltay = sol
-        gamma = 1. + dgamma
-        theta = theta_rad*180/np.pi*60 #arcmin
-        thetay = thetay_rad*180/np.pi*60 #arcmin
-        legend = "rotation: {:.2f} arcmin\n".format(theta)
-        legend += "perpendicularity: {:.2f} arcmin\n".format(thetay)
-        legend += "magnification {:.4f}\n".format(gamma)
-        legend += "deltax: {:.4f} arcsec\n".format(deltax*3600)
-        legend += "deltay: {:.4f} arcsec\n".format(-deltay*3600)
-    residual_rms = np.sqrt(np.square(residuals).mean(axis=0))*3600
-    legend += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
-    plt.text(-10,7, legend)
 
-    plt.show()
 
 def plot_sky_comparison(slit_coords, source_coords, labels=None, figsize=(8,6), scale=1/1000., quiverscale=0.5):
         
@@ -602,6 +542,8 @@ Guider2UV object:
         return slit_coords, source_coords
 
 
+
+
     def compute_autocoll_moves_slits(self, slits, slit_table, hystcomp = False, CEg = 1.02928, Elg = 1.00379):
                
         slits = np.array(slits)
@@ -749,13 +691,90 @@ Guider2UV object:
                 pass
 
 
+        
+    def plot_fit(self, coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8), quiverscale=10,G2UVcor=None):
+        edge_guider_coords=self.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        edge_detector_coords=self.detector2guider(np.array([[1088,0],[1088,2069],[2144,2069],[2144,0],[1088,0]]))
+
+        n = len(coord)
+        
+        coord_arr = coord_list_to_array(coord)
+        coord_obs_arr = coord_list_to_array(coord_obs)
+            
+        delta = coord_obs_arr - coord_arr
+        
+        plt.figure(figsize=figsize)
+        plt.subplot(121)
+        plt.axis('equal')
+        plt.title("model versus mesure")
+        plt.plot(coord_arr[:,0]*3600, coord_arr[:,1]*3600,'or')
+        if labels is not None:
+            for i in range(n):
+                plt.text(coord_arr[i,0]*3600, coord_arr[i,1]*3600, labels[i], color='k')
+        qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
+        plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
+        plt.ylim(plt.ylim()[::-1])
+        plt.grid(True)
+        plt.xlabel('EL arcsec')
+        plt.ylabel(' - CE arcsec')
+        delta_mean = delta.mean(axis=0)
+        delta_rms = np.sqrt(np.square(delta - delta_mean).mean(axis=0))*3600
+        delta_mean *= 3600
+        legend =  "error mean in EL, CE {:.1f}, {:.1f} arcsec\n".format(*list(delta_mean))
+        legend += "error rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(delta_rms))
+        plt.text(-10,7, legend)
+        plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
+        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+
+        plt.subplot(122)
+        plt.axis('equal')
+        plt.title("residual after model fit")
+        plt.plot(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600,'or')
+        if labels is not None:
+            for i in range(n):
+                plt.text(coord_obs_arr[i,0]*3600, coord_obs_arr[i,1]*3600, labels[i], color='k')
+        qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
+        plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
+        plt.ylim(plt.ylim()[::-1])
+        plt.grid(True)
+        plt.xlabel('EL arcsec')
+        plt.ylabel(' - CE arcsec')
+        
+
+
+        legend = ''
+        if sol is not None:
+            dgamma, theta_rad, thetay_rad, deltax, deltay = sol
+            gamma = 1. + dgamma
+            theta = theta_rad*180/np.pi*60 #arcmin
+            thetay = thetay_rad*180/np.pi*60 #arcmin
+            legend = "rotation: {:.2f} arcmin\n".format(theta)
+            legend += "perpendicularity: {:.2f} arcmin\n".format(thetay)
+            legend += "magnification {:.4f}\n".format(gamma)
+            legend += "deltax: {:.4f} arcsec\n".format(deltax*3600)
+            legend += "deltay: {:.4f} arcsec\n".format(-deltay*3600)
+        residual_rms = np.sqrt(np.square(residuals).mean(axis=0))*3600
+        legend += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
+        plt.text(-10,7, legend)
+
+        # print(G2UV.FieldP.pix2local(np.array([1088,0])))
+        # print(G2UV.detector2guider(np.array([1088,0])))
+        # G2UV.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        # G2UV.GuiderP.pix2world([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        # edge_detector_coords=G2UV.FieldP.pix2local([[1088,0],[1088,2069],[1280,2069],[1280,0],[1088,0]])
+        # edge_detector_coords=G2UV.FieldP.pix2local(np.array([1088,0]))
+        plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
+        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+        # plt.axis("equal")
+
+
+        plt.show()
+
     def  update_model(self, coord, coord_obs, gamma=False, ytilt=False, weight=None,
                       inplace=False, plot=False, labels=None, figsize=None, quiverscale=10):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
         
-        if plot:
-            plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale)
             
         if inplace: 
             G2UVcor = self
@@ -786,7 +805,9 @@ Guider2UV object:
     mask_magnification correction: {G2UVcor.FieldP.gamma}  
     '''
         )
-        
+        if plot:
+            self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor)
+     
         return G2UVcor, residuals
 
 
@@ -946,3 +967,4 @@ if __name__ == "__main__":
 #    UVstar_radec = coordinates.SkyCoord()
 #    UVstar_local_coord = FieldP.world2local(UVstar_radec)
     
+
