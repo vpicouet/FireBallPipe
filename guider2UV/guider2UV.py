@@ -703,103 +703,184 @@ Guider2UV object:
         coord_arr = coord_list_to_array(coord)
         coord_obs_arr = coord_list_to_array(coord_obs)
             
-        delta = coord_obs_arr - coord_arr
-        
-        plt.figure(figsize=figsize)
-        plt.subplot(121)
-        plt.axis('equal')
-        plt.title("model versus mesure")
-        plt.plot(coord_arr[:,0]*3600, coord_arr[:,1]*3600,'or')
+        delta = (coord_obs_arr - coord_arr)
+
+
+        fig, (ax0, ax1) = plt.subplots(1, 2, figsize=figsize,sharey=True)
+        ax0.axis('equal')
+        ax1.axis('equal')
+
+        ax0.set_title("model versus measure")
+        ax0.plot(coord_arr[:, 0] * 3600, coord_arr[:, 1] * 3600, 'or')
         if labels is not None:
             for i in range(n):
-                plt.text(coord_arr[i,0]*3600, coord_arr[i,1]*3600, labels[i], color='k')
-        qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
-        plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
-        plt.ylim(plt.ylim()[::-1])
-        plt.grid(True)
-        plt.xlabel('EL arcsec')
-        plt.ylabel(' - CE arcsec')
+                ax0.text(coord_arr[i, 0] * 3600, coord_arr[i, 1] * 3600, labels[i], color='k')
+        qv0 = ax0.quiver(coord_arr[:, 0] * 3600, coord_arr[:, 1] * 3600, delta[:, 0] * 3600, delta[:, 1] * 3600)
+        ax0.quiverkey(qv0, .8, .9, quiverscale, f'{quiverscale} arcsec', color='k')
+        ax0.set_ylim(ax0.get_ylim()[::-1])
+        ax0.grid(True)
+        ax0.set_xlabel('EL arcsec')
+        ax0.set_ylabel(' - CE arcsec')
         delta_mean = delta.mean(axis=0)
-        delta_rms = np.sqrt(np.square(delta - delta_mean).mean(axis=0))*3600
+        delta_rms = np.sqrt(np.square(delta - delta_mean).mean(axis=0)) * 3600
         delta_mean *= 3600
-        legend =  "error mean in EL, CE {:.1f}, {:.1f} arcsec\n".format(*list(delta_mean))
-        legend += "error rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(delta_rms))
-        plt.text(-10,7, legend)
-        plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
-        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
-        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
+        legend0 = "error mean in EL, CE {:.1f}, {:.1f} arcsec\n".format(*list(delta_mean))
+        legend0 += "error rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(delta_rms))
+        # ax0.plot(3600 * edge_guider_coords.lon.deg, 3600 * edge_guider_coords.lat.deg, ":k")
+        # if np.max(coord_obs_arr[:, 0] * 3600) < 1500:
+        #     ax0.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
+        #             3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
+        # else:
+        #     ax0.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
+        #             3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
+        # if selected_stars is not None:
+        #     new_stars_local = self.SienceMask2guider(
+        #         coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
+        #     ax0.plot(3600 * new_stars_local.lon.deg, 3600 * new_stars_local.lat.deg, "k+")
 
-        if selected_stars is not None:
-            # selected_stars = [selected_stars[i] for i in np.nonzero(valid)[0]]
-            # print(coord,type(coord))
-            # print(selected_stars,type(selected_stars))
-            # print(selected_stars[0],type(selected_stars))
-            # selected_stars = coord_list_to_array(coord)
-            UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
-            stars_local  = self.FieldP.world2local(UVstar_radec)
-            plt.plot(3600*stars_local.lon.deg+660,3600*stars_local.lat.deg+100,"k+")
-            # plt.plot(selected_stars[:,0]*3600, selected_stars[:,1]*3600,'or')
-        # plt.ylim((-1200,1200))
-        # plt.xlim((-1000,1300))
-
-
-
-        plt.subplot(122)
-        plt.axis('equal')
-        plt.title("residual after model fit")
-        plt.plot(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600,'or')
+        ax1.set_title("residual after model fit")
+        ax1.plot(coord_obs_arr[:, 0] * 3600, coord_obs_arr[:, 1] * 3600, 'or')
         if labels is not None:
             for i in range(n):
-                plt.text(coord_obs_arr[i,0]*3600, coord_obs_arr[i,1]*3600, labels[i], color='k')
-        qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
-        plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
-        plt.ylim(plt.ylim()[::-1])
-        plt.grid(True)
-        plt.xlabel('EL arcsec')
-        plt.ylabel(' - CE arcsec')
-        
-
-
-        legend = ''
+                ax1.text(coord_obs_arr[i, 0] * 3600, coord_obs_arr[i, 1] * 3600, labels[i], color='k')
+        qv1 = ax1.quiver(coord_obs_arr[:, 0] * 3600, coord_obs_arr[:, 1] * 3600, residuals[:, 0] * 3600, residuals[:, 1] * 3600)
+        ax1.quiverkey(qv1, .8, .9, quiverscale, f'{quiverscale} arcsec', color='k')
+        ax1.set_ylim(ax1.get_ylim()[::-1])
+        ax1.grid(True)
+        ax1.set_xlabel('EL arcsec')
+        ax1.set_ylabel(' - CE arcsec')
+        legend1 = ''
         if sol is not None:
             dgamma, theta_rad, thetay_rad, deltax, deltay = sol
             gamma = 1. + dgamma
-            theta = theta_rad*180/np.pi*60 #arcmin
-            thetay = thetay_rad*180/np.pi*60 #arcmin
-            legend = "rotation: {:.2f} arcmin\n".format(theta)
-            legend += "perpendicularity: {:.2f} arcmin\n".format(thetay)
-            legend += "magnification {:.4f}\n".format(gamma)
-            legend += "deltax: {:.4f} arcsec\n".format(deltax*3600)
-            legend += "deltay: {:.4f} arcsec\n".format(-deltay*3600)
-        residual_rms = np.sqrt(np.square(residuals).mean(axis=0))*3600
-        legend += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
-        plt.text(-10,7, legend)
+            theta = theta_rad * 180 / np.pi * 60  # arcmin
+            thetay = thetay_rad * 180 / np.pi * 60  # arcmin
+            legend1 = "rotation: {:.2f} arcmin\n".format(theta)
+            legend1 += "perpendicularity: {:.2f} arcmin\n".format(thetay)
+            legend1 += "magnification {:.4f}\n".format(gamma)
+            legend1 += "deltax: {:.4f} arcsec\n".format(deltax * 3600)
+            legend1 += "deltay: {:.4f} arcsec\n".format(-deltay * 3600)
+        residual_rms = np.sqrt(np.square(residuals).mean(axis=0)) * 3600
+        legend1 += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
+        ax0.text(-500, -1100, legend0)
+        ax1.text(-500, -1100, legend1)
+        for ax in [ax0,ax1]:
+            ax.plot(3600 * edge_guider_coords.lon.deg, 3600 * edge_guider_coords.lat.deg, ":k")
+            if np.max(coord_obs_arr[:, 0] * 3600) < 1500:
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
+            else:
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
+            if selected_stars is not None:
+                new_stars_local = self.SienceMask2guider(
+                    coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
+                ax.plot(3600 * new_stars_local.lon.deg, 3600 * new_stars_local.lat.deg, "k+")
+        ax0.set_ylim((-1300,1300))
+        plt.tight_layout()
+        plt.show()  
 
-        # print(G2UV.FieldP.pix2local(np.array([1088,0])))
-        # print(G2UV.detector2guider(np.array([1088,0])))
-        # G2UV.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
-        # G2UV.GuiderP.pix2world([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
-        # edge_detector_coords=G2UV.FieldP.pix2local([[1088,0],[1088,2069],[1280,2069],[1280,0],[1088,0]])
-        # edge_detector_coords=G2UV.FieldP.pix2local(np.array([1088,0]))
-        plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
-        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
-        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
-        # plt.axis("equal")
-        if selected_stars is not None:
-            # selected_stars = coord_list_to_array([selected_stars])
-            # plt.plot(selected_stars[:,0]*3600, selected_stars[:,1]*3600,'or')
+        # plt.figure(figsize=figsize)
+        # plt.subplot(121)
+        # plt.axis('equal')
+        # plt.title("model versus mesure")
+        # plt.plot(coord_arr[:,0]*3600, coord_arr[:,1]*3600,'or')
+        # if labels is not None:
+        #     for i in range(n):
+        #         plt.text(coord_arr[i,0]*3600, coord_arr[i,1]*3600, labels[i], color='k')
+        # qv = plt.quiver(coord_arr[:,0]*3600, coord_arr[:,1]*3600, delta[:,0]*3600, delta[:,1]*3600)
+        # plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
+        # plt.ylim(plt.ylim()[::-1])
+        # plt.grid(True)
+        # plt.xlabel('EL arcsec')
+        # plt.ylabel(' - CE arcsec')
+        # delta_mean = delta.mean(axis=0)
+        # delta_rms = np.sqrt(np.square(delta - delta_mean).mean(axis=0))*3600
+        # delta_mean *= 3600
+        # legend =  "error mean in EL, CE {:.1f}, {:.1f} arcsec\n".format(*list(delta_mean))
+        # legend += "error rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(delta_rms))
+        # plt.text(-500,1300, legend)
+        # plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
+        # if np.max(coord_obs_arr[:,0]*3600)<1500:
+        #    plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+        # else:
+        #     plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
 
-            UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
-            stars_local  = self.FieldP.world2local(UVstar_radec)
-            plt.plot(3600*stars_local.lon.deg+660,3600*stars_local.lat.deg+100,"k+")
+        # if selected_stars is not None:
+        #     # selected_stars = [selected_stars[i] for i in np.nonzero(valid)[0]]
+        #     # print(coord,type(coord))
+        #     # print(selected_stars,type(selected_stars))
+        #     # print(selected_stars[0],type(selected_stars))
+        #     # selected_stars = coord_list_to_array(coord)
+        #     # UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
+        #     # stars_local  = self.FieldP.world2local(UVstar_radec)
+        #     # plt.plot(3600*stars_local.lon.deg,3600*stars_local.lat.deg,"k+")
 
-        # plt.ylim((-1200,1200))
-        # plt.xlim((-1000,1300))
-        plt.show()
+        #     new_stars_local = self.SienceMask2guider(coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg), world=True, angle=True)
+        #     plt.plot(3600*new_stars_local.lon.deg,3600*new_stars_local.lat.deg,"k+")
+
+        # plt.subplot(122)
+        # plt.axis('equal')
+        # plt.title("residual after model fit")
+        # plt.plot(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600,'or')
+        # if labels is not None:
+        #     for i in range(n):
+        #         plt.text(coord_obs_arr[i,0]*3600, coord_obs_arr[i,1]*3600, labels[i], color='k')
+        # qv = plt.quiver(coord_obs_arr[:,0]*3600, coord_obs_arr[:,1]*3600, residuals[:,0]*3600, residuals[:,1]*3600)
+        # plt.quiverkey(qv, .8,.9, quiverscale, f'{quiverscale} arcsec', color='k')
+        # plt.ylim(plt.ylim()[::-1])
+        # plt.grid(True)
+        # plt.xlabel('EL arcsec')
+        # plt.ylabel(' - CE arcsec')
+        
+
+
+        # legend = ''
+        # if sol is not None:
+        #     dgamma, theta_rad, thetay_rad, deltax, deltay = sol
+        #     gamma = 1. + dgamma
+        #     theta = theta_rad*180/np.pi*60 #arcmin
+        #     thetay = thetay_rad*180/np.pi*60 #arcmin
+        #     legend = "rotation: {:.2f} arcmin\n".format(theta)
+        #     legend += "perpendicularity: {:.2f} arcmin\n".format(thetay)
+        #     legend += "magnification {:.4f}\n".format(gamma)
+        #     legend += "deltax: {:.4f} arcsec\n".format(deltax*3600)
+        #     legend += "deltay: {:.4f} arcsec\n".format(-deltay*3600)
+        # residual_rms = np.sqrt(np.square(residuals).mean(axis=0))*3600
+        # legend += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
+        # # plt.text(-10,7, legend)
+        # plt.text(-500,1300, legend)
+
+        # # print(G2UV.FieldP.pix2local(np.array([1088,0])))
+        # # print(G2UV.detector2guider(np.array([1088,0])))
+        # # G2UV.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        # # G2UV.GuiderP.pix2world([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        # # edge_detector_coords=G2UV.FieldP.pix2local([[1088,0],[1088,2069],[1280,2069],[1280,0],[1088,0]])
+        # # edge_detector_coords=G2UV.FieldP.pix2local(np.array([1088,0]))
+        # plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
+        # if np.max(coord_obs_arr[:,0]*3600)<1500:
+        #    plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+        # else:
+        #     plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
+        # # plt.axis("equal")
+        # if selected_stars is not None:
+        #     # selected_stars = coord_list_to_array([selected_stars])
+        #     # plt.plot(selected_stars[:,0]*3600, selected_stars[:,1]*3600,'or')
+
+        #     # UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
+        #     # stars_local  = self.FieldP.world2local(UVstar_radec)
+        #     # plt.plot(3600*stars_local.lon.deg,3600*stars_local.lat.deg,"ko")
+        #     new_stars_local = self.SienceMask2guider(coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg), world=True, angle=True)
+        #     plt.plot(3600*new_stars_local.lon.deg,3600*new_stars_local.lat.deg,"k+")
+
+
+        # # plt.ylim((-1200,1200))
+        # # plt.xlim((-1000,1300))
+        # plt.show()
 
 
     def  update_model(self, coord, coord_obs, gamma=False, ytilt=False, weight=None,
-                      inplace=False, plot=False, labels=None, figsize=None, quiverscale=10,selected_stars=None):
+                      inplace=True, plot=False, labels=None, figsize=None, quiverscale=10,selected_stars=None):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
         
@@ -840,7 +921,21 @@ Guider2UV object:
             # print(coords)
             # self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor,selected_stars=coords)
             self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor,selected_stars=selected_stars)
-     
+            print("""
+            Left plot verification
+            [x]  Error mean give the average of the residuals (=arrows=model-measurements) before model improvement
+            This Error mean must be <5" at the last interation
+            [x]  Error rms is the rms of the arrows. This might potentiallly due to rotation or bad cutting of the slits
+            [x]  Crosses show targets and bright stars position using the updated model. For the final iteration + & o should be gathered on both plots
+            Right plot verification
+            [x]  Residual rms are residuals between new model and measures after fitting an offset + rotation.
+            If should always be <5" even if we are far from the slits
+            [x] Rotation should be <1deg, magnification should be 1
+            [x] Delta x and y should be close to 0 for the last iteration.
+            
+            
+            
+            """)
         return G2UVcor, residuals
 
 
