@@ -544,7 +544,7 @@ Guider2UV object:
 
 
 
-    def compute_autocoll_moves_slits(self, slits, slit_table, hystcomp = False, CEg = 1.02928, Elg = 1.00379):
+    def compute_autocoll_moves_slits(self, slits, slit_table,CEg = 1.02928, Elg = 1.00379, hystcomp = False):#
                
         slits = np.array(slits)
         #nslits = slits.size
@@ -555,7 +555,7 @@ Guider2UV object:
         else:
             x,y = "x_mm", "y_mm"
 
-
+    
         for s in slits:
             slit_pos = np.array([st[st['Internal-count']==s][x][0], st[st['Internal-count']==s][y][0]])
             print("slit position in mm on mask:", slit_pos)
@@ -691,10 +691,12 @@ Guider2UV object:
                 pass
 
 
-        
-    def plot_fit(self, coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8), quiverscale=10,G2UVcor=None):
+
+
+    def plot_fit(self, coord, coord_obs, residuals, labels=None, sol=None, figsize=(15,8), quiverscale=10,G2UVcor=None,selected_stars=None):
         edge_guider_coords=self.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
         edge_detector_coords=self.detector2guider(np.array([[1088,0],[1088,2069],[2144,2069],[2144,0],[1088,0]]))
+        edge_detector_coords2=self.detector2guider(np.array([[0,0],[0,2069],[1088,2069],[1088,0],[0,0]]))
 
         n = len(coord)
         
@@ -725,6 +727,22 @@ Guider2UV object:
         plt.text(-10,7, legend)
         plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
         plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
+
+        if selected_stars is not None:
+            # selected_stars = [selected_stars[i] for i in np.nonzero(valid)[0]]
+            # print(coord,type(coord))
+            # print(selected_stars,type(selected_stars))
+            # print(selected_stars[0],type(selected_stars))
+            # selected_stars = coord_list_to_array(coord)
+            UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
+            stars_local  = self.FieldP.world2local(UVstar_radec)
+            plt.plot(3600*stars_local.lon.deg+660,3600*stars_local.lat.deg+100,"k+")
+            # plt.plot(selected_stars[:,0]*3600, selected_stars[:,1]*3600,'or')
+        # plt.ylim((-1200,1200))
+        # plt.xlim((-1000,1300))
+
+
 
         plt.subplot(122)
         plt.axis('equal')
@@ -765,13 +783,23 @@ Guider2UV object:
         # edge_detector_coords=G2UV.FieldP.pix2local(np.array([1088,0]))
         plt.plot(3600*edge_guider_coords.lon.deg,3600*edge_guider_coords.lat.deg,":k")
         plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords]),3600*np.array([i.lat.deg for i in edge_detector_coords]),"--k")
+        plt.plot(3600*np.array([i.lon.deg for i in edge_detector_coords2]),3600*np.array([i.lat.deg for i in edge_detector_coords2]),"--k")
         # plt.axis("equal")
+        if selected_stars is not None:
+            # selected_stars = coord_list_to_array([selected_stars])
+            # plt.plot(selected_stars[:,0]*3600, selected_stars[:,1]*3600,'or')
 
+            UVstar_radec=coordinates.SkyCoord(selected_stars['RA']*u.deg, selected_stars['DEC']*u.deg)
+            stars_local  = self.FieldP.world2local(UVstar_radec)
+            plt.plot(3600*stars_local.lon.deg+660,3600*stars_local.lat.deg+100,"k+")
 
+        # plt.ylim((-1200,1200))
+        # plt.xlim((-1000,1300))
         plt.show()
 
+
     def  update_model(self, coord, coord_obs, gamma=False, ytilt=False, weight=None,
-                      inplace=False, plot=False, labels=None, figsize=None, quiverscale=10):
+                      inplace=False, plot=False, labels=None, figsize=None, quiverscale=10,selected_stars=None):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
         
@@ -806,7 +834,12 @@ Guider2UV object:
     '''
         )
         if plot:
-            self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor)
+            # if selected_stars is not None:
+            #     _, _, coords = self.compute_autocoll_moves_slits(np.unique(selected_stars['Internal-count']), selected_stars)
+            # print(selected_stars)
+            # print(coords)
+            # self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor,selected_stars=coords)
+            self.plot_fit(coord, coord_obs, residuals, labels=labels, sol=sol, figsize=figsize, quiverscale=quiverscale,G2UVcor=G2UVcor,selected_stars=selected_stars)
      
         return G2UVcor, residuals
 
