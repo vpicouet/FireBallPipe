@@ -51,7 +51,7 @@ def save_region_file(t,field,mappings_linw):
         [list(y),list(y2),list(y3)],
         radius=[15, 40] ,
         save=True,
-        savename="/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Mappings/2023/%s.reg"%(field),
+        savename="/Users/Vincent/Nextcloud/LAM/FIREBALL/FireBallPipe/Calibration/Mappings/2023/%s.reg"%(field),
         form=["box","box","box"],
         color=["red","yellow","blue"],
         ID=[list(t["Internal-count"]),list(t["Internal-count"]),list(t["Internal-count"])],
@@ -163,7 +163,7 @@ def create_mapping(field, file=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2
              
     # mask_table = Table.read("/Users/Vincent/Github/FireBallPipe/Calibration/Slits/%s_new.csv"%(field))
     
-    mask_table = Table.read("/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Targets/2022/targets_%s.csv"%(field),format="ascii")
+    mask_table = Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/FireBallPipe/Calibration/Targets/2022/targets_%s.csv"%(field),format="ascii")
     try:
         mask_table["xmask"],mask_table["ymask"] = mask_table["x_mask_corrected"],mask_table["_mask_corrected"]
     except KeyError:
@@ -221,7 +221,7 @@ def create_mapping(field, file=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2
     print("Creating mapping: ", mask_table[mask_mapping])#, mask_table[mask_mapping])
     mappings_linw, centers_linw =  map_mask_detector(mask_table[mask_mapping], bywave=False, deg=[1,2,2])
     print("saving file: ", )
-    mappings_linw.save('/Users/Vincent/Library/CloudStorage/GoogleDrive-vp2376@columbia.edu/.shortcut-targets-by-id/1ZgB7kY-wf7meXrq8v-1vIzor75aRdLDn/FIREBall-2/FB2_2023/instrument_alignment_focusing/XY_calibration/FireBallPipe/Calibration/Mappings/2023/mask_to_det_mapping/mapping-mask-det-w-0-%s_%s.pkl'%(field,datetime.now().strftime("%y%m%d")))
+    mappings_linw.save('/Users/Vincent/Nextcloud/LAM/FIREBALL/FireBallPipe/Calibration/Mappings/2023/mask_to_det_mapping/mapping-mask-det-w-0-%s_%s.pkl'%(field,datetime.now().strftime("%y%m%d")))
     plt_mapping(mask_table, mappings_linw,field)
     save_region_file(mask_table,field,mappings_linw)
     mask_mapping =  np.isfinite(mask_table["Y_IMAGE"]) #& (mask_table["wavelength"]==0.21382)#0.20619)
