@@ -90,7 +90,7 @@ def detector_to_guider(xy, x0, y0, theta, mx, my):
     return (x_mask,y_mask)
 
 # def fit_magnfication(mask_table, field):
-def fit_magnfication(xmm,ymm,xpix,ypix,id_, field="",x0=(30,15,0,0.89,1)):
+def fit_magnfication(xmm,ymm,xpix,ypix,id_, field="",x0=(30,15,0,0.89,1),file=None):
     # print(mask_table, field)
     # xmm = mask_table["ymm"]
     # ymm = -mask_table["xmm"]
@@ -136,6 +136,8 @@ def fit_magnfication(xmm,ymm,xpix,ypix,id_, field="",x0=(30,15,0,0.89,1)):
     ax0.set_title(field)
     ax2.set_title("Residuals")
     fig.tight_layout()
+    if file is not None:
+        fig.savefig(file.replace(".csv",".png"))
     plt.show()
     return  a["x"]
 
@@ -234,13 +236,13 @@ def create_mapping(field, file=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2
     pd = mask_table[mask_mapping].to_pandas()
     
     # mag = fit_magnfication(xmm,ymm,xpix,ypix,mask_table[mask_mapping]["Internal-count"],field)
-    mag = fit_magnfication(pd.eval(x1),pd.eval(y1),pd.eval(x2),pd.eval(y2),pd.eval(id_),field)
+    mag = fit_magnfication(pd.eval(x1),pd.eval(y1),pd.eval(x2),pd.eval(y2),pd.eval(id_),field,file=file)
     # mag = fit_magnfication(mask_table[mask_mapping],field)
     # return mag#Table([os.path.basename(os.path.dirname(f)),os.path.basename(f)]+list(mag),names=["iteration","mask","x0","y0","theta","mx","my"])
     return [os.path.basename(os.path.dirname(file)),os.path.basename(file)]+list(mag)#   ,names=["iteration","mask","x0","y0","theta","mx","my"])
 
 
-# mag= create_mapping("QSObright",file="/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/17_cold_230804/QSObright_image000049.csv")#Table.read(f) )
+# mag= create_mapping("QSObright",file="/Users/Vincent/Nextcloud/LAM/FIREBALL/all_diffuse_illumination/2023/18_cold_-120_230819/QSObright_image000019.csv")#Table.read(f) )
 
 
 

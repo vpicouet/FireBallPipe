@@ -775,28 +775,37 @@ Guider2UV object:
             print(e)
         ax0.text(-500, -1100, legend0)
         ax1.text(-500, -1100, legend1)
-        # for ax in [ax0,ax1]:
-        #     ax.plot(3600 * edge_guider_coords.lon.deg, 3600 * edge_guider_coords.lat.deg, ":k")
-        #     # print(np.max(coord_obs_arr[:, 0] * 3600))
-        #     # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
-        #     #         3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
-        #     # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
-        #     #         3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
-        #     if edge_detector_coords[0].lon.deg < 1000/3600:
-        #         ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
-        #                 3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
-        #         # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords_angle]),
-        #         #         3600 * np.array([i.lat.deg for i in edge_detector_coords_angle]), "--k")
+            # print(np.max(coord_obs_arr[:, 0] * 3600))
+            # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
+            #         3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
+            # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
+            #         3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
 
-        #     else:
-        #         ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
-        #                 3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
-        #         # ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords_angle2]),
-        #         #         3600 * np.array([i.lat.deg for i in edge_detector_coords_angle2]), "--k")
-        #     if selected_stars is not None:
-        #         new_stars_local = self.SienceMask2guider(
-        #             coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
-        #         ax.plot(3600 * new_stars_local.lon.deg, 3600 * new_stars_local.lat.deg, "k+")
+        edge_guider_coords=self.GuiderP.pix2local([[0,0],[0,1080],[1280,1080],[1280,0],[0,0]])
+        edge_detector_coords=self.detector2guider(np.array([[1088,0],[1088,2000],[2144,2000],[2144,0],[1088,0]]))
+        edge_detector_coords2=self.detector2guider(np.array([[0,0],[0,2000],[1088,2000],[1088,0],[0,0]]))
+        edge_detector_coords_mm=np.array([[-13,-13,13,13,-13],[-6.5,6.5,6.5,-6.5,-6.5] ])
+        edge_detector_coords_mm2=np.array([[-13,-13,13,13,-13],[-6.5-15,6.5-15,6.5-15,-6.5-15,-6.5-15] ])
+        edge_detector_coords_angle = self.SienceMask2guider(edge_detector_coords_mm, angle=True) 
+        edge_detector_coords_angle2 = self.SienceMask2guider(edge_detector_coords_mm2, angle=True) 
+        for ax in [ax0,ax1]:
+            ax.plot(3600 * edge_guider_coords.lon.deg, 3600 * edge_guider_coords.lat.deg, ":k")
+            if edge_detector_coords[0].lon.deg < 1000/3600:
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords]), "--k")
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords_angle]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords_angle]), "--k")
+
+            else:
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords2]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords2]), "--k")
+                ax.plot(3600 * np.array([i.lon.deg for i in edge_detector_coords_angle2]),
+                        3600 * np.array([i.lat.deg for i in edge_detector_coords_angle2]), "--k")
+            if selected_stars is not None:
+                new_stars_local = self.SienceMask2guider(
+                    coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
+                print(new_stars_local.lon.deg, new_stars_local.lat.deg)
+                ax.plot(3600 * new_stars_local.lon.deg, 3600 * new_stars_local.lat.deg, "k+")
         ax0.set_ylim((-1300,1300))
         plt.tight_layout()
         plt.show()  
@@ -904,7 +913,12 @@ Guider2UV object:
                       inplace=True, plot=False, labels=None, figsize=None, quiverscale=10,selected_stars=None):
         
         sol, residuals = fit_model(coord, coord_obs, gamma, ytilt, weight)
-        
+        if gamma:
+            if inplace:
+                print("are you sure you want to modify G2UV and add some magnification?")
+                import sys
+                sys.exit()
+
             
         if inplace: 
             G2UVcor = self
