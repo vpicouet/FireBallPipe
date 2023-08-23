@@ -89,7 +89,7 @@ def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
             deltax = sol[2]
             deltay = sol[3]
             theta = theta_rad*180/np.pi*60 #arcmin
-            print("gamma: {}\ntheta: {} arcmin\ndx: {} arcsec\ndy: {} arcsec".format(gamma, theta, deltax*3600, deltay*3600))
+            print("gamma: %0.3f \ntheta: %0.1f arcmin\ndx: %0.1f arcsec\ndy: %0.1f arcsec"%(gamma, theta, deltax*3600, deltay*3600))
             covar = matinv.dot(matinv.T)
             # accuracy, assuming 1 arcsec measurement error
             print("variances: {}\n".format(np.sqrt(np.diag(covar))/3600*[1, 180/np.pi*60, 3600, 3600])) #
@@ -110,7 +110,7 @@ def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
             deltay = sol[4]
             theta = theta_rad*180/np.pi*60 #arcmin
             thetay = thetay_rad*180/np.pi*60 #arcmin
-            print("gamma: {}\ntheta: {} arcmin\ntheta_y: {} arcmin\ndx: {} arcsec\ndy: {} arcsec".format(gamma, theta, thetay, deltax*3600, deltay*3600))
+            print("gamma: %0.3f \ntheta: %0.1f arcmin\ntheta_y: %0.1f arcmin\ndx: %0.1f arcsec\ndy: %0.1f arcsec"%(gamma, theta, thetay, deltax*3600, deltay*3600))
             covar = matinv.dot(matinv.T)
             # accuracy, assuming 1 arcsec measurement error
             print("variances: {}\n".format(np.sqrt(np.diag(covar))/3600*[1, 180/np.pi*60, 180/np.pi*60, 3600, 3600])) #
@@ -132,7 +132,7 @@ def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
             deltax = sol[1]
             deltay = sol[2]
             theta = theta_rad*180/np.pi*60 #arcmin
-            print("theta: {} arcmin\ndx: {} arcsec\ndy: {} arcsec".format(theta, deltax*3600, deltay*3600))
+            print("theta: %0.1f arcmin\ndx: %0.1f arcsec\ndy: %0.1f arcsec"%(theta, deltax*3600, deltay*3600))
             covar = matinv.dot(matinv.T)
             # accuracy, assuming 1 arcsec measurement error
             print("variances: {}\n".format(np.sqrt(np.diag(covar))/3600*[180/np.pi*60, 3600, 3600]))
@@ -153,7 +153,7 @@ def fit_model(coord, coord_obs, gamma=False, ytilt=False, weight=None):
             deltay = sol[3]
             theta = theta_rad*180/np.pi*60 #arcmin
             thetay = thetay_rad*180/np.pi*60 #arcmin
-            print("theta: {} arcmin\ntheta_y: {} arcmin\ndx: {} arcsec\ndy: {} arcsec".format(theta, thetay, deltax*3600, deltay*3600))
+            print("theta:  %0.1f arcmin\ntheta_y:  %0.1f arcmin\ndx:  %0.1f arcsec\ndy:  %0.1f arcsec"%(theta, thetay, deltax*3600, deltay*3600))
             covar = matinv.dot(matinv.T)
             # accuracy, assuming 1 arcsec measurement error
             print("variances: {}\n".format(np.sqrt(np.diag(covar))/3600*[180/np.pi*60, 180/np.pi*60, 3600, 3600]))
@@ -806,13 +806,14 @@ Guider2UV object:
                     coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
                 print(new_stars_local.lon.deg, new_stars_local.lat.deg)
                 ax.plot(3600 * new_stars_local.lon.deg, 3600 * new_stars_local.lat.deg, "k+")
+                # for 
         ax0.set_ylim((-1300,1300))
+        ax0.invert_yaxis()
         plt.tight_layout()
         plt.show()  
 
         # plt.figure(figsize=figsize)
         # plt.subplot(121)
-        # plt.axis('equal')
         # plt.title("model versus mesure")
         # plt.plot(coord_arr[:,0]*3600, coord_arr[:,1]*3600,'or')
         # if labels is not None:
