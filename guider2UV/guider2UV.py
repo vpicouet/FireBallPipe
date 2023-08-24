@@ -500,15 +500,69 @@ Guider2UV object:
                                                Stars_id, UVStar_id)
         
         return coordinates.SkyCoord(UVstar_coord[0]*u.deg, UVstar_coord[1]*u.deg, frame=self.GuiderP.localframe)
-    
-    
+
+    @property
+    def caroussel_rotation(self):
+        return self._carousel_rotation
+
+    @caroussel_rotation.setter
+    def caroussel_rotation(self, angle):
+        self._carousel_rotation = angle
+        tank_rotation_center = coordinates.SkyCoord(0.*u.deg, angle, frame=self.FieldP.localframe).transform_to(coordinates.ICRS)
+        self._tank_rotation_frame = coordinates.SkyOffsetFrame(origin=tank_rotation_center, rotation=self.FieldP.localframe.rotation)        
+
+    def __rotate_caroussel(self, Flocal_coord, inverse=False):
+        try:
+            angle = self._caroussel_rotation
+        except AttributeError:
+            return Flocal_coord
+
+        if not inverse:
+            assert(Flocal_coord.frame == self.FieldP.localframe)
+            dest_frame = self._tank_rotation_frame
+        else:
+            assert(Flocal_coord.frame == self._tank_rotation_frame)
+            dest_frame = self.FieldP.localframe
+
+        return Flocal_coord.transform_to(dest_frame)
+
+    def __rotate_tank(self, Flocal_coord, inverse=False):
+
+        try:
+            angle = self.tank_rotation
+        except AttributeError:
+            return Flocal_coord
+        
+        if inverse:
+            angle = -angle
+
+        # implement rotation here
+        # 1. rotate to rotation center (caroussel)
+        Flocal_coord = self.__rotate_caroussel(Flocal_coord)
+        
+        # 2. rotate tank
+        frame = Flocal_coord.frame
+        new_frame = coordinates.SkyOffsetFrame( origin=frame.origin, 
+                                                rotation=self.FieldP.localframe.rotation + angle)
+        Flocal_coord = Flocal_coord.transform_to(new_frame)                             
+        Flocal_coord = coordinates.SkyCoord(Flocal_coord.lon, Flocal_coord.lat, frame=frame)
+
+        # 3. unrotate caroussel
+        Flocal_coord = self.__rotate_caroussel(Flocal_coord, inverse=True)
+
+        return Flocal_coord
+
+
     def FieldLocal_to_guider(self, Fcoord_local, angle=False):
         '''
         Determine objects position (local angles or pixels) on guider from their 
         local coord in the Field 
         '''
-        
-        # rotate
+
+        # rotate tank
+        Fcoord_local = self.__rotate_tank(Fcoord_local)
+
+        # rotate by mask rotation
         rot = self.mask_rotation.to('rad').value  
         mrot = np.array([[1, -rot],
                          [rot, 1]])
@@ -540,12 +594,17 @@ Guider2UV object:
         F_local_lon = Gcoord_local.lon - self.FOV_center_guider_coord.lon
         F_local_lat = Gcoord_local.lat - self.FOV_center_guider_coord.lat
         
-        # unrotate
+        # unrotate mask_rotation
         rot = self.mask_rotation.to('rad').value  
         mrot = np.array([[1, rot],
                          [-rot, 1]])
         F_local = mrot.dot(np.array([F_local_lon.deg, F_local_lat.deg]))
-        return coordinates.SkyCoord(F_local[0]*u.deg, F_local[1]*u.deg, frame=self.FieldP.localframe)
+        Fcoord_local = coordinates.SkyCoord(F_local[0]*u.deg, F_local[1]*u.deg, frame=self.FieldP.localframe)
+
+        # unrotate tank
+        Fcoord_local = self.__rotate_tank(Fcoord_local, inverse=True)
+
+        return Fcoord_local
     
 
     def SienceMask2guider(self, coords, world=False, angle=False):
@@ -789,8 +848,19 @@ Guider2UV object:
         edges_mask_mm = np.array([[-13,-13,13,13,-13],[-6.5,6.5,6.5,-6.5,-6.5] ])
         edges_mask_mm2 = np.array([[-13,-13,13,13,-13],[-6.5-15,6.5-15,6.5-15,-6.5-15,-6.5-15] ])
 
+        # apply tank rotation the guider edges
+        try:
+            tank_rotation = self.tank_rotation
+        except AttributeError:
+            edges_guider_angle = self.GuiderP.pix2local(edges_guider_pix)
+        else:
+            del self.tank_rotation
+            edges_guider_angle = self.guider2ScienceMask(edges_guider_pix)
+            self.tank_rotation = tank_rotation
+            edges_guider_angle = self.SienceMask2guider(edges_guider_angle, angle=True)
+
         edges = {
-            "guider": self.GuiderP.pix2local(edges_guider_pix),
+            "guider": edges_guider_angle,
             "detector": self.detector2guider(edges_detector_pix),
             "detector2": self.detector2guider(edges_detector_pix2),
             "mask": self.SienceMask2guider(edges_mask_mm, angle=True), 
@@ -799,6 +869,39 @@ Guider2UV object:
         
         return edges
 
+    # def rotate_tank(self, angle, caroussel_angle=None, inplace=True):
+    #     raise Exception("Not implemented yet !")
+
+    # def rotate_caroussel(self, angle, inplace=True, preserve_XY_calib=False):
+    #     ''' Rotate the carroussel by angle  (relative to the current position)
+    #     '''
+    #     if inplace: 
+    #         G2UVnew = self
+    #     else:
+    #         G2UVnew = self.copy()
+
+    #     Field_center_new = coordinates.SkyCoord(self.FieldP.localframe.origin)
+    #     Field_center_new = Field_center_new.spherical_offsets_by(0.*u.arcsec, angle).transform_to(coordinates.ICRS)
+
+    #     G2UVnew.FieldP = LocalScienceMaskProjector(Field_center_new, self.FieldP.rotation, self.FieldP.gamma)
+
+    #     # apply the transformation so that the new field center stay 
+    #     # at the same position on guider coord
+    #     # if preserve_XY_calib:
+
+    #     return G2UVnew
+
+    # for handling masks corresponding to several fields
+    def change_field(self, Field_center, Field_rotation, inplace=True):
+
+        if inplace: 
+            G2UVnew = self
+        else:
+            G2UVnew = self.copy()
+
+        G2UVnew.FieldP = LocalScienceMaskProjector(Field_center, Field_rotation, self.FieldP.gamma)
+
+        return G2UVnew
 
     def  update_model(self, coord, coord_obs, gamma=False, ytilt=False, weight=None,
                       inplace=True, plot=False, labels=None, figsize=None, quiverscale=10, selected_stars=None):
