@@ -247,7 +247,7 @@ def add_hystcomp(moves):
     return np.array(hystcomp_moves), np.array(flags)
 
     
-def compute_autocoll_moves(targets_coord, hystcomp = False, CEg = 1.0272, Elg = 1.0063 ):
+def compute_autocoll_moves(targets_coord, hystcomp = False, CEg = 1.0240, Elg = 1.0049 ):
 
     ntargets = len(targets_coord)
     theta_EL_CE = np.zeros((ntargets,2))
@@ -544,7 +544,7 @@ Guider2UV object:
 
 
 
-    def compute_autocoll_moves_slits(self, slits, slit_table,CEg = 1.0272, Elg = 1.0063, hystcomp = False):#
+    def compute_autocoll_moves_slits(self, slits, slit_table,CEg = 1.0240, Elg = 1.0049, hystcomp = False):#
                
         slits = np.array(slits)
         #nslits = slits.size
@@ -569,7 +569,7 @@ Guider2UV object:
         return moves, flags, slit_coords
     
         
-    def compute_autocoll_move_stars(self, stars, star_table, hystcomp = False, CEg = 1.0272, Elg =  1.0063):
+    def compute_autocoll_move_stars(self, stars, star_table, hystcomp = False, CEg = 1.0240, Elg =  1.0049):
         
         stars = np.array(stars)
         #nstars = stars.size
