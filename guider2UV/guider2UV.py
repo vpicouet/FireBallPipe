@@ -270,8 +270,8 @@ def plot_fit(coord, coord_obs, coord_new, residuals, labels=None, sol=None, figs
         legend1 += "residual rms in EL,CE {:.1f}, {:.1f} arcsec".format(*list(residual_rms))
     except TypeError as e:
         print(e)
-    ax0.text(-500, -1100, legend0)
-    ax1.text(-500, -1100, legend1)
+    ax0.text(-700, 1200, legend0)
+    ax1.text(-700, 1200, legend1)
 
     if edges is not None:
         for ax,edge in zip([ax0,ax1], edges):
