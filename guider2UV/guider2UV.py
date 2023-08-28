@@ -862,6 +862,8 @@ Guider2UV object:
                 stars_after_update = G2UVcor.SienceMask2guider(
                     coordinates.SkyCoord(selected_stars['RA'] * u.deg, selected_stars['DEC'] * u.deg), world=True, angle=True)
                 selected_stars_both = [stars_before_update, stars_after_update]    
+            else:
+                selected_stars_both=None
             
             coord_new = []
             for c in coord_fieldlocal:
