@@ -508,10 +508,21 @@ Guider2UV object:
 
     @caroussel_rotation.setter
     def caroussel_rotation(self, angle):
-        self._carousel_rotation = angle
+        guider_center = coordinates.SkyCoord(0,0,unit=u.deg, frame=self.GuiderP.localframe)
+        guider_center_field_local = self.guider_to_FieldLocal(guider_center, angle=True)
+
+        self._caroussel_rotation = angle
+        if self._caroussel_rotation == 0:
+            del self._caroussel_rotation
         tank_rotation_center = coordinates.SkyCoord(0.*u.deg, angle, frame=self.FieldP.localframe).transform_to(coordinates.ICRS)
         self._tank_rotation_frame = coordinates.SkyOffsetFrame(origin=tank_rotation_center, rotation=self.FieldP.localframe.rotation)        
-
+        
+        ## rotate FOV (in guider coord)
+        guider_center_new = self.FieldLocal_to_guider(guider_center_field_local, angle=True)
+        self.FOV_center_guider_coord = coordinates.SkyCoord(self.FOV_center_guider_coord.lon + guider_center_new.lon,
+                                                            self.FOV_center_guider_coord.lat + guider_center_new.lat, 
+                                                            frame=self.GuiderP.localframe)
+       
     def __rotate_caroussel(self, Flocal_coord, inverse=False):
         try:
             angle = self._caroussel_rotation
@@ -527,10 +538,34 @@ Guider2UV object:
 
         return Flocal_coord.transform_to(dest_frame)
 
+    @property
+    def tank_rotation(self):
+        return self._tank_rotation
+
+    @tank_rotation.setter
+    def tank_rotation(self, angle):
+        guider_center = coordinates.SkyCoord(0,0,unit=u.deg, frame=self.GuiderP.localframe)
+        guider_center_field_local = self.guider_to_FieldLocal(guider_center, angle=True)
+        try:
+            cur_angle = self._tank_rotation
+        except AttributeError:
+            pass
+        else:
+            if np.abs(cur_angle - angle) < 1*u.arcsec:
+                return
+        self._tank_rotation = angle
+        if self._tank_rotation == 0.0:
+            del self._tank_rotation
+        ## rotate FOV (in guider coord)
+        guider_center_new = self.FieldLocal_to_guider(guider_center_field_local, angle=True)
+        self.FOV_center_guider_coord = coordinates.SkyCoord(self.FOV_center_guider_coord.lon + guider_center_new.lon,
+                                                            self.FOV_center_guider_coord.lat + guider_center_new.lat, 
+                                                            frame=self.GuiderP.localframe)
+
     def __rotate_tank(self, Flocal_coord, inverse=False):
 
         try:
-            angle = self.tank_rotation
+            angle = self._tank_rotation
         except AttributeError:
             return Flocal_coord
         
@@ -849,13 +884,13 @@ Guider2UV object:
         edges_mask_mm = np.array([[-13,-13,13,13,-13],[-6.5,6.5,6.5,-6.5,-6.5] ])
         edges_mask_mm2 = np.array([[-13,-13,13,13,-13],[-6.5-15,6.5-15,6.5-15,-6.5-15,-6.5-15] ])
 
-        # apply tank rotation the guider edges
+        # apply tank rotation to the guider edges
         try:
             tank_rotation = self.tank_rotation
         except AttributeError:
             edges_guider_angle = self.GuiderP.pix2local(edges_guider_pix)
         else:
-            del self.tank_rotation
+            self.tank_rotation = 0
             edges_guider_angle = self.guider2ScienceMask(edges_guider_pix)
             self.tank_rotation = tank_rotation
             edges_guider_angle = self.SienceMask2guider(edges_guider_angle, angle=True)
