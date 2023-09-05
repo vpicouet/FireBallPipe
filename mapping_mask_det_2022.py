@@ -167,7 +167,7 @@ def create_mapping(field, file=None,x1 = "ymm",y1 = "-xmm",x2="X_IMAGE*0.013",y2
     
     mask_table = Table.read("/Users/Vincent/Nextcloud/LAM/FIREBALL/FireBallPipe/Calibration/Targets/2022/targets_%s.csv"%(field),format="ascii")
     try:
-        mask_table["xmask"],mask_table["ymask"] = mask_table["x_mask_corrected"],mask_table["_mask_corrected"]
+        mask_table["xmask"],mask_table["ymask"] = mask_table["x_mask_corrected"],mask_table["y_mask_corrected"]
     except KeyError:
         mask_table["xmm"],mask_table["ymm"] = mask_table["x_mm"],mask_table["y_mm"]
         mask_table["xmask"],mask_table["ymask"] = mask_table["xmm"],mask_table["ymm"]

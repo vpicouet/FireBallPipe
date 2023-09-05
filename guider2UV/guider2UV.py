@@ -292,6 +292,7 @@ def plot_fit(coord, coord_obs, coord_new, residuals, labels=None, sol=None, figs
             print(stars_local.lon.deg, stars_local.lat.deg)
             ax.plot(3600 * stars_local.lon.deg, 3600 * stars_local.lat.deg, "k+")
     ax0.set_ylim((-1300,1300))
+    # ax0.set_xlim((-1000,1500))
     ax0.invert_yaxis()
     plt.tight_layout()
     plt.show()
